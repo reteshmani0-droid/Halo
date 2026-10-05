@@ -34,18 +34,33 @@ and none needs a card. About fifteen minutes.
 
 ## 1. Publish this repository
 
-This folder is already a git repository with its first commit in it. Publish it as it is:
+This folder is already a git repository, and it is already published at
+**https://github.com/reteshmani0-droid/Halo** — `origin` points there and `main` tracks it. So from
+now on, publishing a change is two commands:
 
-- **GitHub Desktop** (already installed on this machine): **File → Add local repository**, choose
-  this folder, then **Publish repository**. Leave *Keep this code private* ticked or untick it —
-  Vercel imports either.
-- **Or the command line:** create an empty repository on github.com named `halo-website` (no
-  README, no .gitignore — this folder already has both), then:
+```bash
+git add -A
+git commit -m "what changed"
+git push
+```
 
-  ```bash
-  git remote add origin https://github.com/<your-account>/halo-website.git
-  git push -u origin main
-  ```
+A push to `main` is what Vercel builds, so once step 2 is done the site follows the repository by
+itself — that is the whole reason to have it connected rather than deployed by hand.
+
+**Starting from a copy of this folder, or a new account?** Publish it the same way: **GitHub
+Desktop → File → Add local repository** → this folder → **Publish repository** (leave *Keep this
+code private* ticked or untick it — Vercel imports either), or create an empty repository on
+github.com and:
+
+```bash
+git remote add origin https://github.com/<your-account>/<your-repository>.git
+git push -u origin main
+```
+
+One thing worth knowing about the name. This repository is **the website**; if the desktop app is
+ever pushed into the same one, the site moves to a `web/` folder inside it and the Vercel project
+needs **Root Directory** `web`. `README.md` documents that layout from the project's side, and
+nothing else here changes: the scripts in `tools/` find the site in either place.
 
 ## 2. Import it into Vercel
 
