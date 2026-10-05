@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in — Halo</title>
+  <meta name="description" content="Sign in to the Halo dashboard to see your machines, their messages, and to cut a machine's access off. Create an account, or set a new password." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#141210" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <script src="/assets/js/config.js"></script>
+  <!-- Pinned to an exact version: an unpinned CDN script is a stranger's release schedule
+       deciding what runs on this page. No SRI hash is written here on purpose — a hash that
+       was guessed rather than computed blocks the script it is meant to protect. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" defer></script>
+  <script src="/assets/js/cloud.js" defer></script>
+  <script src="/assets/js/ui.js" defer></script>
+  <script src="/assets/js/page-signin.js" defer></script>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="/"><img src="/assets/img/mark.png" alt="" width="26" height="26" />Halo</a>
+      <nav class="site">
+        <a href="/">Home</a>
+        <a href="/download">Download</a>
+        <a href="/start">Get started</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" style="max-width:900px;padding-top:48px">
+    <h1 id="signTitle">Sign in</h1>
+    <p class="muted" id="signSub">
+      The dashboard shows the machines you have connected, what they have been doing, and
+      lets you cut one off. The desktop app works without an account.
+    </p>
+
+    <div id="setup" class="hidden"></div>
+
+    <div class="grid two split" style="margin-top:24px">
+      <div>
+        <div class="card">
+          <form id="signForm" autocomplete="on">
+            <label class="field" id="nameField" hidden>
+              <span>What should we call you?</span>
+              <input type="text" id="signName" name="name" autocomplete="name" placeholder="Your name" />
+            </label>
+            <label class="field">
+              <span>Email</span>
+              <input type="email" id="signEmail" name="email" autocomplete="email" required placeholder="you@example.com" />
+            </label>
+            <label class="field">
+              <span>Password</span>
+              <input type="password" id="signPassword" name="password" autocomplete="current-password" required minlength="8" placeholder="At least 8 characters" />
+            </label>
+            <button class="btn primary" id="signSubmit" type="submit" style="width:100%">Sign in</button>
+          </form>
+          <div class="note" id="signNote" hidden></div>
+          <div class="links">
+            <a href="#" id="toggleMode">I need an account instead</a>
+            <a href="#" id="forgot">Forgot the password</a>
+          </div>
+        </div>
+
+        <!-- Shown instead of the sign-in card when the page was opened from a reset email: the
+             session that link carries may only change the password. -->
+        <div class="card" id="resetCard" hidden>
+          <div class="card-head">
+            <div class="grow">
+              <h2 style="margin:0">Set a new password</h2>
+              <span class="hint">This link is good once, then it stops working</span>
+            </div>
+          </div>
+          <form id="resetForm" autocomplete="on">
+            <label class="field">
+              <span>New password</span>
+              <input type="password" id="resetPassword" autocomplete="new-password" required minlength="8" placeholder="At least 8 characters" />
+            </label>
+            <label class="field">
+              <span>New password again</span>
+              <input type="password" id="resetPassword2" autocomplete="new-password" required minlength="8" />
+            </label>
+            <button class="btn primary" id="resetSubmit" type="submit" style="width:100%">Save the new password</button>
+          </form>
+          <div class="note" id="resetNote" hidden></div>
+        </div>
+      </div>
+
+      <aside class="side">
+        <h2 style="font-size:16px">What an account gives you</h2>
+        <ul class="muted small ticks">
+          <li>This machine on the dashboard, with its name, platform and model</li>
+          <li>A copy of the conversation, readable from a phone</li>
+          <li>The <strong>cut access</strong> switch, which the machine obeys on its next check</li>
+        </ul>
+        <p class="small dim">
+          Only if you switch it on in the app. Your files, your screen, your keys and your
+          clipboard are never sent.
+        </p>
+        <p class="small dim">
+          Just want the app? <a href="/start">Get started</a> walks through download, install and
+          this page in order.
+        </p>
+      </aside>
+    </div>
+
+    <p class="small dim">
+      Accounts are held in your own Supabase project. This page sends your email and password
+      straight there, so nothing passes through a server of ours: there is no server of ours.
+    </p>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <span>Halo</span>
+      <nav><a href="/">Home</a><a href="/start">Get started</a><a href="/download">Download</a><a href="/privacy">Privacy</a></nav>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy — Halo</title>
+  <meta name="description" content="What Halo's website stores, what the desktop app reports, and how to stop it." />
+  <link rel="canonical" href="https://halo.example/privacy" />
+  <meta name="theme-color" content="#141210" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="stylesheet" href="/assets/css/site.css" />
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="/"><img src="/assets/img/mark.png" alt="" width="26" height="26" />Halo</a>
+      <nav class="site">
+        <a href="/">Home</a>
+        <a href="/download">Download</a>
+        <a href="/app">Dashboard</a>
+        <a class="btn small primary" href="/signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" style="max-width:720px;padding-top:40px">
+    <h1>Privacy</h1>
+    <p class="lead">The honest version: the assistant runs on your machine, and this website
+    stores only what the app sends it when you turn that on.</p>
+
+    <h2>If you never sign in</h2>
+    <p>Nothing about you is here. The site is static files: no analytics, no advertising, no
+    third-party trackers, no cookies set by us. The only requests a browser makes are for the
+    pages, the stylesheet, the scripts in this repository, and the Supabase script from a CDN.</p>
+
+    <h2>If you create an account</h2>
+    <p>Held in the Supabase project named in <code>web/assets/js/config.js</code>, which is the
+    project the site's owner runs:</p>
+    <div class="card tight">
+      <table>
+        <thead><tr><th>What</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Email and a password hash</td><td>To sign you in. Passwords are hashed by Supabase's auth service; nobody can read them, including the project owner.</td></tr>
+          <tr><td>Your name</td><td>So a dashboard and an admin panel show a person rather than an address. You can change or empty it.</td></tr>
+          <tr><td>Machines: name, platform, architecture, app version, model</td><td>So you can tell one install from another, and see what it is set to.</td></tr>
+          <tr><td>Messages you and Halo exchanged</td><td>So the conversation can be read from a phone. This is the sensitive one, and it is the reason the app's switch is off until you turn it on.</td></tr>
+          <tr><td>Timestamps and whether access was cut</td><td>So "is that machine still reporting" and "who cut it off" have answers.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>What is never uploaded</h2>
+    <p>Your files, your screen, your keystrokes, your model API keys, and the contents of your
+    clipboard. The app cannot send them even by accident: the only things it posts are the
+    rows listed above.</p>
+
+    <h2>Who can see it</h2>
+    <p>You. And, on a project where somebody has been made an admin, that admin: the point of
+    the admin panel is to see the accounts and their machines. That is a deliberate choice you
+    are making by signing in to somebody else's Halo project rather than running your own. If
+    you want no admin above you, run your own Supabase project and your own copy of this site
+    — it is the same files.</p>
+
+    <h2>Stopping it</h2>
+    <ul class="muted">
+      <li>Turn the account off in the app's <strong>Settings → Account</strong>. Reporting stops
+      immediately; nothing further is sent.</li>
+      <li>Delete a machine from the dashboard. Its reported messages go with it.</li>
+      <li>Delete your account: remove the user in Supabase → Authentication → Users. Every row
+      belonging to it is deleted with it, by the foreign keys in the schema.</li>
+    </ul>
+
+    <h2>Not covered here</h2>
+    <p>Your model provider sees every prompt you send it, as with any assistant that uses one.
+    Nothing on this site changes that, and it is the honest place to say so.</p>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <span>Halo</span>
+      <nav><a href="/">Home</a><a href="/download">Download</a><a href="/start">Get started</a><a href="/app">Dashboard</a></nav>
+    </div>
+  </footer>
+</body>
+</html>

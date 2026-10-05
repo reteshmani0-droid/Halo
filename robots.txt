@@ -1,0 +1,13 @@
+# The public pages are meant to be found; the account pages are not useful in a search
+# result and are marked noindex in their own HTML as well, because a robots rule is a
+# request and a meta tag is a rule.
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /admin
+Disallow: /signin
+
+# /, /download and /start are the ones worth finding: a search result for "Halo download"
+# should land somebody on the page with the button on it.
+
+Sitemap: https://halo.example/sitemap.xml

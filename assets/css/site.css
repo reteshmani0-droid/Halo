@@ -1,0 +1,482 @@
+/* Halo — the website.
+   Same palette and the same 4px scale as the desktop app (ui/style.css), because the two
+   are the same product and a second, unrelated look is how a project starts to look like
+   two projects. One accent hue — the mark's own — surfaces a warm neutral in that same
+   family, no glow, no gradients. */
+
+/*
+ * IBM Plex Sans, self-hosted, the same two files as the app's ui/fonts/ — byte for byte, and
+ * checked as such, because a font that is updated in one product and not the other is two
+ * products at a glance. OFL; the licence sits beside the files in web/assets/fonts/.
+ *
+ * Not a system stack and not a font CDN. The system stack is what a page that has not decided
+ * anything looks like, and this one is asking you to install software on your machine; a CDN
+ * would mean the first paint after every deploy waits on somebody else's server, which is the
+ * shape of layout shift that makes a download page feel cheap.
+ */
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../fonts/plex-sans-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../fonts/plex-sans-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  /* The mark's own colour, measured off the artwork by core/crest.js: hue 37°, saturation 100%,
+     lightness 62%. The desktop app's stylesheet carries the same three numbers and a check
+     compares all six against the file, so the site and the app cannot end up two products, and
+     a replaced logo.png cannot leave either one drawing a colour the mark is not. */
+  --hue: 37;
+  --accent-s: 100%;
+  --accent-l: 62%;
+
+  /* The same warm ladder as the app's ui/style.css, and for the same reason: the mark is
+     gold, and a cold blue-grey either side of the download button is the one place the two
+     products would look like two palettes. Each token is the colour it was, rotated onto
+     the mark's hue with its saturation and lightness kept. */
+  --bg: #141210;
+  --panel: #1c1a17;
+  --panel-2: #24211d;
+  --raise: #2c2924;
+  --line: #33302a;
+  --line-soft: #292621;
+  --line-strong: #433f38;
+  --hair: #ffffff0d;
+
+  --ink: #eae9e7;
+  --muted: #a3a09a;
+  --dim: #7a7771;
+
+  /* The same three formulas as the app's ui/style.css, deliberately: one accent, drawn the same
+     way on both. The label on a filled button is --on-accent, which sits at 10.2:1 against this
+     fill, and the accent as text on --bg is 10.6:1. */
+  --accent: hsl(var(--hue) var(--accent-s) var(--accent-l));
+  --accent-hover: hsl(var(--hue) var(--accent-s) calc(var(--accent-l) + 6%));
+  --accent-dim: hsl(var(--hue) var(--accent-s) var(--accent-l) / 0.14);
+  --accent-line: hsl(var(--hue) var(--accent-s) var(--accent-l) / 0.36);
+  --on-accent: #1a1610;
+
+  --ok: #63a583;
+  --warn: #c2ab4f;   /* the app's, shifted off the accent for the same reason: see ui/style.css */
+  --danger: #c0706f;
+  --danger-ink: #d79999;
+  --danger-line: #4d3032;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 72px;
+
+  --page-max: 1080px;
+  --radius: 10px;
+  --radius-sm: 7px;
+
+  --font: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: "Cascadia Mono", ui-monospace, Consolas, "SF Mono", Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 15px/1.6 var(--font);
+  /* The desktop app sets this; a site that lets the OS render its own scrollbar next to a
+     dark page gets a bright stripe down the right edge. */
+  color-scheme: dark;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+h1, h2, h3 { margin: 0 0 var(--sp-3); line-height: 1.25; font-weight: 600; letter-spacing: -0.01em; }
+h1 { font-size: 34px; }
+h2 { font-size: 21px; }
+h3 { font-size: 15px; }
+p { margin: 0 0 var(--sp-4); color: var(--muted); }
+p.lead { font-size: 17px; color: var(--ink); max-width: 62ch; }
+strong { color: var(--ink); font-weight: 600; }
+code, kbd { font-family: var(--mono); font-size: 13px; background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 5px; padding: 1px 5px; color: var(--ink); }
+hr { border: 0; border-top: 1px solid var(--line-soft); margin: var(--sp-6) 0; }
+
+.wrap { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--sp-5); }
+.muted { color: var(--muted); }
+.dim { color: var(--dim); }
+.small { font-size: 13px; }
+.nowrap { white-space: nowrap; }
+.center { text-align: center; }
+.hidden { display: none !important; }
+
+/* ---------------------------------------------------------------- header */
+
+header.site {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #141210f2;
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line-soft);
+}
+header.site .wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  height: 60px;
+}
+.brand { display: flex; align-items: center; gap: var(--sp-3); color: var(--ink); font-weight: 600; letter-spacing: -0.01em; }
+.brand:hover { text-decoration: none; }
+.brand img { width: 26px; height: 26px; border-radius: 7px; display: block; }
+.brand span.version { color: var(--dim); font-weight: 400; font-size: 12px; }
+
+nav.site { display: flex; gap: var(--sp-4); margin-left: auto; align-items: center; }
+nav.site a { color: var(--muted); font-size: 14px; }
+nav.site a:hover { color: var(--ink); text-decoration: none; }
+nav.site a.active { color: var(--ink); }
+
+/* ---------------------------------------------------------------- buttons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  height: 36px;
+  padding: 0 var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  color: var(--ink);
+  font: 500 14px/1 var(--font);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--raise); border-color: var(--line-strong); text-decoration: none; }
+.btn:disabled { opacity: 0.55; cursor: default; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.ghost { background: transparent; }
+.btn.small { height: 30px; padding: 0 var(--sp-3); font-size: 13px; }
+.btn.danger { border-color: var(--danger-line); color: var(--danger-ink); background: transparent; }
+.btn.danger:hover { background: #c0706f1a; }
+.btn-row { display: flex; gap: var(--sp-2); flex-wrap: wrap; align-items: center; }
+
+/* ---------------------------------------------------------------- surfaces */
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  padding: var(--sp-5);
+  margin-bottom: var(--sp-4);
+}
+.card.tight { padding: var(--sp-4); }
+.card-head { display: flex; align-items: flex-start; gap: var(--sp-4); margin-bottom: var(--sp-4); }
+.card-head h2, .card-head h3 { margin: 0; }
+.card-head .grow { flex: 1; }
+.card-head .hint { color: var(--dim); font-size: 13px; margin-top: 2px; }
+
+.grid { display: grid; gap: var(--sp-4); }
+.grid.two { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.grid.three { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.grid.four { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+
+/* ---------------------------------------------------------------- forms */
+
+label.field { display: block; margin-bottom: var(--sp-4); }
+label.field > span { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+input[type="text"], input[type="email"], input[type="password"], input[type="search"], select, textarea {
+  width: 100%;
+  height: 38px;
+  padding: 0 var(--sp-3);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font: 400 14px/1 var(--font);
+}
+textarea { height: auto; padding: var(--sp-2) var(--sp-3); line-height: 1.5; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent-line); box-shadow: 0 0 0 3px var(--accent-dim); }
+input::placeholder { color: var(--dim); }
+.row { display: flex; gap: var(--sp-3); align-items: flex-end; flex-wrap: wrap; }
+.row > * { flex: 1 1 180px; }
+.row > .btn { flex: 0 0 auto; }
+
+.switch { display: inline-flex; align-items: center; gap: var(--sp-3); cursor: pointer; }
+.switch input { appearance: none; width: 38px; height: 22px; border-radius: 999px; background: #33302b; position: relative; margin: 0; cursor: pointer; transition: background 120ms ease; }
+.switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); transition: transform 140ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.switch input:checked { background: var(--accent); }
+.switch input:checked::after { transform: translateX(16px); background: var(--on-accent); }
+
+/* ---------------------------------------------------------------- the fleet card */
+
+/* One row per switch: what it does on the left, the control that does it on the right, and a
+   rule between them so two unrelated switches do not read as one paragraph. */
+.switch-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  padding: var(--sp-4) 0;
+  border-top: 1px solid var(--line-soft);
+}
+.switch-row .grow { flex: 1; min-width: 0; }
+.switch-row .name { font-weight: 500; display: flex; align-items: center; gap: var(--sp-2); }
+.switch-row .desc { color: var(--dim); font-size: 13px; margin-top: 2px; max-width: 78ch; }
+.switch-row > .btn { flex: 0 0 auto; }
+#fleetCard label.field { margin: 0; }
+/* The state of a switch is the thing to read at a glance, so it carries the colour and the
+   button carries the action. A card that is switched off is not an error: it is a decision. */
+#fleetCard.armed { border-color: var(--danger-line); }
+#fleetCard.armed .card-head h2 { color: var(--danger-ink); }
+
+/* The feature switches on a handed-out copy. The row itself is the label, so the whole line is
+   clickable rather than only the box, and the one feature that cannot be switched off is drawn
+   as what it is - a fact about the machine, not a control somebody forgot to wire up. */
+label.switch-row { cursor: pointer; }
+label.switch-row input[type="checkbox"] { flex: 0 0 auto; margin: 3px 0 0; width: 16px; height: 16px; accent-color: var(--accent); }
+label.switch-row:hover .name { color: var(--ink); }
+label.switch-row.floor { cursor: default; }
+label.switch-row.floor .name, label.switch-row.floor .desc { color: var(--dim); }
+
+/* ---------------------------------------------------------------- tables + lists */
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-weight: 500; color: var(--dim); font-size: 12px; text-transform: none; padding: 0 var(--sp-3) var(--sp-2); border-bottom: 1px solid var(--line-soft); }
+td { padding: var(--sp-3); border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.actions { white-space: nowrap; text-align: right; }
+.table-wrap { overflow-x: auto; }
+
+.list { display: flex; flex-direction: column; }
+.list .item { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) 0; border-bottom: 1px solid var(--line-soft); }
+.list .item:last-child { border-bottom: 0; }
+.item .grow { flex: 1; min-width: 0; }
+.item .name { font-weight: 500; display: flex; align-items: center; gap: var(--sp-2); }
+.item .desc { color: var(--dim); font-size: 13px; }
+.item .desc a { color: var(--muted); }
+
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); flex: 0 0 auto; }
+.dot.on { background: var(--ok); }
+.dot.off { background: var(--dim); }
+.dot.bad { background: var(--danger); }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 var(--sp-2); border-radius: 999px; font-size: 12px; border: 1px solid var(--line); color: var(--muted); background: var(--panel-2); }
+.pill.ok { color: var(--ok); border-color: #63a58340; }
+.pill.bad { color: var(--danger-ink); border-color: var(--danger-line); }
+.pill.warn { color: var(--warn); border-color: #b3945a40; }
+
+.empty { color: var(--dim); font-size: 14px; padding: var(--sp-4) 0; }
+
+.note { border-left: 2px solid var(--line-strong); padding: var(--sp-1) 0 var(--sp-1) var(--sp-3); color: var(--muted); font-size: 14px; margin: var(--sp-4) 0; }
+.note.bad { border-color: var(--danger); color: var(--danger-ink); }
+.note.good { border-color: var(--ok); color: var(--ink); }
+
+/* ---------------------------------------------------------------- landing */
+
+.hero { padding: var(--sp-8) 0 var(--sp-6); }
+.hero h1 { font-size: 42px; max-width: 20ch; }
+.hero p.lead { margin-top: var(--sp-4); }
+.hero .btn-row { margin-top: var(--sp-5); }
+.hero .meta { color: var(--dim); font-size: 13px; margin-top: var(--sp-3); }
+
+section.band { padding: var(--sp-7) 0; border-top: 1px solid var(--line-soft); }
+section.band h2 { margin-bottom: var(--sp-5); }
+
+.feature h3 { margin-bottom: var(--sp-2); }
+.feature p { margin: 0; font-size: 14px; }
+
+pre.term {
+  background: #0c0d10;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  padding: var(--sp-4);
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 var(--sp-4);
+}
+pre.term b { color: var(--ink); font-weight: 500; }
+pre.term .c { color: var(--dim); }
+
+details.faq { border-bottom: 1px solid var(--line-soft); padding: var(--sp-4) 0; }
+details.faq summary { cursor: pointer; color: var(--ink); font-weight: 500; list-style: none; }
+details.faq summary::-webkit-details-marker { display: none; }
+details.faq summary::after { content: "+"; float: right; color: var(--dim); }
+details.faq[open] summary::after { content: "\2212"; }
+details.faq p { margin: var(--sp-3) 0 0; }
+
+/* ---------------------------------------------------------------- downloads */
+
+.dl { display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.dl .os { background: var(--panel); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: var(--sp-4); }
+.dl .os h3 { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-1); }
+.dl .os .arch { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-3); }
+.dl .os .arch .btn { justify-content: space-between; width: 100%; font-weight: 400; }
+.dl .os .arch .btn b { font-weight: 600; }
+.dl .os .arch .size { color: var(--dim); font-size: 12px; font-family: var(--mono); }
+.dl .os .arch .btn.missing { opacity: 0.5; cursor: not-allowed; }
+.dl .os .arch .btn.recommended { border-color: var(--accent-line); }
+.dl .os .tag { color: var(--dim); font-size: 12px; }
+
+/* ------------------------------------------------------------------- one click */
+
+/* The button that does the thing, on the three pages that offer a download. Placed and sized
+   as the primary action rather than as one tile among six. */
+.one-box { margin: var(--sp-5) 0 var(--sp-3); }
+.one { display: flex; flex-direction: column; gap: var(--sp-3); align-items: flex-start; }
+.btn.big { height: 46px; padding: 0 var(--sp-5); font-size: 15px; border-radius: 10px; }
+.one-note { display: flex; gap: var(--sp-3); flex-wrap: wrap; align-items: baseline; color: var(--dim); font-size: 13px; }
+.one-note .file { font-family: var(--mono); color: var(--muted); }
+/* Where the download button would have been, when there is no download to give.
+   A raised panel rather than a bare line of text: it stands in the same place as the button, so
+   the page keeps its shape and the reader is not left looking at a gap where a control was. */
+.one.closed {
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--warn);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  padding: var(--sp-4);
+  gap: var(--sp-2);
+}
+.one.closed .label { font-weight: 500; }
+
+/* A single line that points somewhere else, used under a download and under a form. */
+.strip { display: flex; gap: var(--sp-3); flex-wrap: wrap; align-items: baseline; margin-top: var(--sp-4); }
+.strip a, .links a { color: var(--muted); }
+.strip a:hover, .links a:hover { color: var(--ink); }
+
+/* ------------------------------------------------------------------- steps */
+
+/* The get started page. Numbers are drawn rather than written into the text, so the step count
+   and the copy that refers to it cannot drift apart. */
+ol.steps { list-style: none; padding: 0; margin: var(--sp-6) 0 0; counter-reset: step; }
+ol.steps > li { position: relative; padding: 0 0 var(--sp-6) var(--sp-7); border-left: 1px solid var(--line-soft); margin-left: 13px; }
+ol.steps > li:last-child { border-left-color: transparent; padding-bottom: var(--sp-4); }
+.step-head { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-2); }
+.step-head .n {
+  position: absolute; left: -13px; width: 26px; height: 26px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--panel-2); border: 1px solid var(--line); color: var(--muted);
+  font-size: 13px; font-family: var(--mono);
+}
+.step-head h2 { margin: 0; font-size: 17px; }
+ol.steps > li > p { margin: 0 0 var(--sp-3); }
+
+/* The two values a machine pastes in, with the button that copies each one. */
+.copy-row { display: flex; gap: var(--sp-3); align-items: center; flex-wrap: wrap; padding: var(--sp-2) 0; border-bottom: 1px solid var(--line-soft); }
+.copy-row > span:first-child { flex: 0 0 92px; }
+.copy-row code { flex: 1; min-width: 200px; overflow-wrap: anywhere; color: var(--muted); }
+.copy-row .btn { flex: 0 0 auto; }
+
+/* The panel beside a form, and the list inside it. */
+.side { min-width: 0; }
+.grid.two.split { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); }
+ul.ticks { list-style: none; padding: 0; margin: var(--sp-3) 0 var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); }
+ul.ticks li { position: relative; padding-left: var(--sp-5); }
+ul.ticks li::before { content: ""; position: absolute; left: 0; top: 7px; width: 9px; height: 5px; border-left: 1px solid var(--accent); border-bottom: 1px solid var(--accent); transform: rotate(-45deg); }
+.links { display: flex; gap: var(--sp-4); flex-wrap: wrap; margin-top: var(--sp-4); font-size: 13px; }
+
+/* ---------------------------------------------------------------- footer */
+
+footer.site { border-top: 1px solid var(--line-soft); padding: var(--sp-6) 0; margin-top: var(--sp-7); color: var(--dim); font-size: 13px; }
+footer.site .wrap { display: flex; gap: var(--sp-5); flex-wrap: wrap; align-items: center; }
+footer.site a { color: var(--muted); }
+footer.site nav { display: flex; gap: var(--sp-4); margin-left: auto; flex-wrap: wrap; }
+
+/* ---------------------------------------------------------------- app shell (dashboard + admin) */
+
+.shell { display: grid; grid-template-columns: 210px 1fr; gap: var(--sp-5); padding: var(--sp-5) 0 var(--sp-7); align-items: start; }
+.shell > aside { position: sticky; top: 76px; }
+.shell nav.rail { display: flex; flex-direction: column; gap: 2px; }
+.shell nav.rail a { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-sm); color: var(--muted); font-size: 14px; }
+.shell nav.rail a:hover { background: var(--hair); color: var(--ink); text-decoration: none; }
+.shell nav.rail a.active { background: var(--accent-dim); color: var(--ink); }
+.shell nav.rail .sep { height: 1px; background: var(--line-soft); margin: var(--sp-3) var(--sp-2); }
+.shell .main { min-width: 0; }
+.shell .main h1 { font-size: 24px; }
+.page-head { display: flex; align-items: flex-start; gap: var(--sp-4); margin-bottom: var(--sp-5); flex-wrap: wrap; }
+.page-head .grow { flex: 1; }
+.stat { background: var(--panel); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: var(--sp-4); }
+.stat .n { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
+.stat .k { color: var(--dim); font-size: 13px; }
+
+/* ---------------------------------------------------------------- messages */
+
+.log { display: flex; flex-direction: column; gap: var(--sp-3); max-height: 460px; overflow-y: auto; padding-right: var(--sp-2); }
+.log .m { display: flex; flex-direction: column; gap: 3px; }
+.log .m .who { font-size: 12px; color: var(--dim); }
+.log .m .body { border: 1px solid var(--line-soft); border-radius: var(--radius-sm); padding: var(--sp-3); background: var(--panel-2); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
+.log .m.user .body { border-color: var(--accent-line); background: var(--accent-dim); }
+.log .m .body code { white-space: pre-wrap; }
+
+/* ---------------------------------------------------------------- toast */
+
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--sp-5);
+  transform: translate(-50%, 12px);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-4);
+  color: var(--ink);
+  font-size: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+  z-index: 50;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------------------------------------------------------------- setup banner */
+
+#setup {
+  border: 1px solid var(--warn);
+  background: #b3945a14;
+  color: var(--ink);
+  border-radius: var(--radius);
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-5);
+  font-size: 14px;
+}
+#setup code { background: #00000040; }
+
+/* ---------------------------------------------------------------- motion */
+
+/* One entrance, used everywhere, and switched off for anyone who asked for that at the OS
+   level. Anything longer than this reads as waiting rather than arriving. */
+@media (prefers-reduced-motion: no-preference) {
+  .card, .stat, .dl .os { animation: rise 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+
+@media (max-width: 760px) {
+  h1, .hero h1 { font-size: 29px; }
+  .shell { grid-template-columns: 1fr; }
+  .shell > aside { position: static; }
+  .shell nav.rail { flex-direction: row; overflow-x: auto; }
+  header.site .wrap { height: auto; padding: var(--sp-3) var(--sp-5); flex-wrap: wrap; }
+  nav.site { margin-left: 0; }
+  .grid.two.split { grid-template-columns: minmax(0, 1fr); }
+  ol.steps > li { padding-left: var(--sp-5); }
+  .one .btn.big { width: 100%; justify-content: center; }
+}

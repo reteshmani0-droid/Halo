@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard — Halo</title>
+  <meta name="description" content="Your Halo machines: what they have been doing, their recent messages, and the switch that cuts a machine's access off." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#141210" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <script src="/assets/js/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" defer></script>
+  <script src="/assets/js/cloud.js" defer></script>
+  <script src="/assets/js/ui.js" defer></script>
+  <script src="/assets/js/page-app.js" defer></script>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="/"><img src="/assets/img/mark.png" alt="" width="26" height="26" />Halo</a>
+      <nav class="site">
+        <a href="/">Home</a>
+        <a href="/download">Download</a>
+        <a href="#" id="navSignOut">Sign out</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div id="setup" class="hidden"></div>
+
+    <div class="shell">
+      <!-- The rail. There is deliberately no Remote tab here: reaching another PC's Halo is a
+           desktop-to-desktop link, made and unmade on the machines themselves, and giving it a
+           page on the web would offer a control this site has no way to honour. What belongs on
+           the web is the list of machines and the switch that cuts one off. -->
+      <aside>
+        <nav class="rail">
+          <a href="#overview" data-view="overview">Overview</a>
+          <a href="#machines" data-view="machines">Machines</a>
+          <a href="#messages" data-view="messages">Messages</a>
+          <a href="#account" data-view="account">Account</a>
+          <div class="sep"></div>
+          <a href="/admin" id="navAdmin" class="hidden">Admin</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="page-head">
+          <div class="grow">
+            <h1 id="greeting">Dashboard</h1>
+            <p class="muted small" id="subtitle">Reading your account…</p>
+          </div>
+          <button class="btn small" id="refreshBtn">Refresh</button>
+        </div>
+
+        <section id="view-overview">
+          <div class="grid four" style="margin-bottom:16px">
+            <div class="stat"><div class="n" id="statMachines">—</div><div class="k">machines</div></div>
+            <div class="stat"><div class="n" id="statOnline">—</div><div class="k">seen in the last 10 minutes</div></div>
+            <div class="stat"><div class="n" id="statCut">—</div><div class="k">with access cut</div></div>
+            <div class="stat"><div class="n" id="statMessages">—</div><div class="k">messages reported</div></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>Machines</h2><span class="hint">One row per install that has signed in</span></div>
+            <div class="list" id="machineList"><div class="empty">Loading…</div></div>
+          </div>
+        </section>
+
+        <section id="view-machines" class="hidden">
+          <div class="card">
+            <div class="card-head">
+              <h2>Machines</h2>
+              <span class="hint">Cutting a machine off is undone there, by whoever is at it</span>
+            </div>
+            <div class="list" id="machineList2"><div class="empty">Loading…</div></div>
+          </div>
+          <div class="card">
+            <h3>Connecting another machine</h3>
+            <ol class="muted small">
+              <li>Install Halo on that machine and start it.</li>
+              <li>Open <strong>Settings → Account</strong> there and paste this site's Supabase URL
+              and anon key, then sign in with this same email.</li>
+              <li>The machine appears here within a minute, with its name and what it is doing.</li>
+            </ol>
+            <p class="small dim">
+              Only the app can start reporting; this page cannot add a machine, because a page
+              cannot reach into a computer. If a machine is missing, its account switch is off
+              or its sign-in failed — the app's settings show which.
+            </p>
+          </div>
+        </section>
+
+        <section id="view-messages" class="hidden">
+          <div class="card">
+            <div class="card-head">
+              <div class="grow">
+                <h2>Recent messages</h2>
+                <span class="hint">Reported by the app when its account is on</span>
+              </div>
+              <select id="msgDevice" style="max-width:220px"><option value="">All machines</option></select>
+            </div>
+            <div class="log" id="msgLog"><div class="empty">Loading…</div></div>
+          </div>
+          <div class="card tight">
+            <p class="small dim" style="margin:0">
+              This list is what the app sent, in the order it happened. It is a copy, not the
+              live conversation: the conversation itself lives on the machine.
+            </p>
+          </div>
+        </section>
+
+        <section id="view-account" class="hidden">
+          <div class="card">
+            <div class="card-head"><h2>Account</h2></div>
+            <label class="field">
+              <span>Name (shown to you and to an admin)</span>
+              <input type="text" id="acctName" placeholder="Your name" />
+            </label>
+            <div class="row" style="margin-bottom:16px">
+              <div>
+                <div class="small dim">Email</div>
+                <div id="acctEmail" class="muted">—</div>
+              </div>
+              <div>
+                <div class="small dim">Role</div>
+                <div id="acctRole" class="muted">—</div>
+              </div>
+              <div>
+                <div class="small dim">Account created</div>
+                <div id="acctCreated" class="muted">—</div>
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn primary" id="saveName">Save name</button>
+              <button class="btn ghost" id="signOut2">Sign out</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>Audit log</h2><span class="hint">Everything done to your machines from here</span></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>When</th><th>Action</th><th>Machine</th><th>Who</th></tr></thead>
+                <tbody id="auditBody"><tr><td colspan="4" class="dim">Loading…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div class="wrap">
+      <span>Halo</span>
+      <nav><a href="/">Home</a><a href="/download">Download</a><a href="/start">Get started</a><a href="/privacy">Privacy</a></nav>
+    </div>
+  </footer>
+</body>
+</html>

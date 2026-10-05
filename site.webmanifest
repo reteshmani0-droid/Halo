@@ -1,0 +1,13 @@
+{
+  "name": "Halo",
+  "short_name": "Halo",
+  "description": "Your Halo machines, their recent messages, and the switch that cuts a machine's access off.",
+  "start_url": "/app.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#141210",
+  "theme_color": "#141210",
+  "icons": [
+    { "src": "/assets/img/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

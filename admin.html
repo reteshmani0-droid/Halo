@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin — Halo</title>
+  <meta name="description" content="Every account, machine and reported message on this Halo project, and the switch that cuts a machine off." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#141210" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <script src="/assets/js/config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" defer></script>
+  <script src="/assets/js/cloud.js" defer></script>
+  <script src="/assets/js/ui.js" defer></script>
+  <script src="/assets/js/page-admin.js" defer></script>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="/"><img src="/assets/img/mark.png" alt="" width="26" height="26" />Halo</a>
+      <nav class="site">
+        <a href="/app">Dashboard</a>
+        <a href="/">Home</a>
+        <a href="#" id="navSignOut">Sign out</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div id="setup" class="hidden"></div>
+
+    <div class="shell">
+      <aside>
+        <nav class="rail">
+          <a href="#people" data-view="people">People</a>
+          <a href="#given" data-view="given">Given out</a>
+          <a href="#activity" data-view="activity">Activity</a>
+          <a href="/app">My dashboard</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="page-head">
+          <div class="grow">
+            <h1>Admin</h1>
+            <p class="muted small" id="subtitle">Checking your role…</p>
+          </div>
+          <button class="btn small" id="refreshBtn">Refresh</button>
+        </div>
+
+        <section id="view-people">
+          <!-- The switch that applies to everyone. At the top of the first view rather than
+               behind its own rail item: it is looked for in a hurry, and a switch nobody can
+               find is not a switch. -->
+          <div class="card" id="fleetCard">
+            <div class="card-head">
+              <div class="grow">
+                <h2>Everyone</h2>
+                <span class="hint" id="fleetState">Reading the switches…</span>
+              </div>
+              <span class="pill" id="fleetPill">—</span>
+            </div>
+
+            <div class="switch-row">
+              <div class="grow">
+                <div class="name">Switch every copy off</div>
+                <div class="desc" id="lockdownDesc">Every install on this project stops answering, stops controlling anything and stops reporting, on its next check-in. Nothing on anybody's PC is touched: it is told to stand down, and it comes back on its own when this is switched off again.</div>
+              </div>
+              <button class="btn danger" id="lockdownBtn">Switch everyone off</button>
+            </div>
+
+            <label class="field" id="lockdownWhy">
+              <span>What to tell them</span>
+              <input type="text" id="lockdownMessage" maxlength="200" placeholder="What is happening, and roughly when it will be back" />
+              <span class="hint">Shown on every machine that has been switched off. Required, because it is the only thing the people affected will see.</span>
+            </label>
+
+            <div class="switch-row">
+              <div class="grow">
+                <div class="name">Hand out the installers</div>
+                <div class="desc">With this off, every download button on the site is replaced by a note. The published files are still there, so this is what the site tells a visitor rather than a wall around it.</div>
+              </div>
+              <button class="btn" id="downloadsBtn">Close the downloads</button>
+            </div>
+          </div>
+
+          <div class="grid four" style="margin-bottom:16px">
+            <div class="stat"><div class="n" id="statPeople">—</div><div class="k">accounts</div></div>
+            <div class="stat"><div class="n" id="statMachines">—</div><div class="k">machines</div></div>
+            <div class="stat"><div class="n" id="statCut">—</div><div class="k">with access cut</div></div>
+            <div class="stat"><div class="n" id="statMessages">—</div><div class="k">messages</div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div class="grow">
+                <h2>Accounts</h2>
+                <span class="hint">Name and address as they signed up, with what they have connected</span>
+              </div>
+              <input type="search" id="peopleFilter" placeholder="Filter by name or email" style="max-width:260px" />
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Name</th><th>Email</th><th>Role</th><th>Machines</th><th>Messages</th><th>Last seen</th><th></th></tr>
+                </thead>
+                <tbody id="peopleBody"><tr><td colspan="7" class="dim">Loading…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div class="grow">
+                <h2 id="detailTitle">Machines</h2>
+                <span class="hint" id="detailHint">Every machine on this project</span>
+              </div>
+              <button class="btn small ghost hidden" id="clearDetail">Show all</button>
+            </div>
+            <div class="list" id="machineList"><div class="empty">Loading…</div></div>
+          </div>
+        </section>
+
+        <section id="view-given" class="hidden">
+          <div class="card">
+            <div class="card-head">
+              <div class="grow">
+                <h2>Given out</h2>
+                <span class="hint" id="givenState">Reading the machines…</span>
+              </div>
+            </div>
+            <div class="list" id="givenList"><div class="empty">Loading…</div></div>
+          </div>
+
+          <!-- One editor rather than a form in every row. A policy is set on one machine at a
+               time, and a page full of open forms is a page where the wrong one gets saved. -->
+          <div class="card hidden" id="givenEditor">
+            <div class="card-head">
+              <div class="grow">
+                <h2 id="givenEditorName">Machine</h2>
+                <span class="hint" id="givenEditorHint"></span>
+              </div>
+              <button class="btn small ghost" id="givenEditorClose">Close</button>
+            </div>
+            <div id="givenEditorList"></div>
+            <p class="hint" id="givenEditorNote"></p>
+            <div class="btn-row">
+              <button class="btn primary" id="givenEditorSave">Save</button>
+              <button class="btn" id="givenEditorAll">Allow everything</button>
+            </div>
+          </div>
+
+          <div class="card tight">
+            <p class="small dim" style="margin:0">
+              A copy installed from <a href="/download">the download page</a> carries this
+              project's address, so it joins by itself the first time it runs and appears here
+              without its new owner typing anything. Its account has no address of its own — that
+              is what the app made when it joined — and it is subject to the same switches as any
+              other machine: cut its access and it stands down on its next check-in. A setting
+              saved here reaches the machine within five minutes, which is how often it asks.
+            </p>
+          </div>
+        </section>
+
+        <section id="view-activity" class="hidden">
+          <div class="card">
+            <div class="card-head">
+              <div class="grow">
+                <h2>Messages</h2>
+                <span class="hint">Newest first, as the app reported them</span>
+              </div>
+              <select id="msgPerson" style="max-width:240px"><option value="">Everyone</option></select>
+            </div>
+            <div class="log" id="msgLog"><div class="empty">Loading…</div></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>Audit log</h2><span class="hint">Every cut and restore on this project</span></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>When</th><th>Action</th><th>Actor</th><th>Target</th></tr></thead>
+                <tbody id="auditBody"><tr><td colspan="4" class="dim">Loading…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div class="wrap">
+      <span>Halo</span>
+      <nav><a href="/app">Dashboard</a><a href="/">Home</a><a href="/download">Download</a><a href="/privacy">Privacy</a></nav>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "halo-website",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The Halo website: plain HTML, CSS and JavaScript. Supabase is the database and the accounts, Vercel serves the files.",
+  "license": "MIT",
+  "scripts": {
+    "web:config": "node tools/web-config.js",
+    "serve:web": "node tools/serve-web.js"
+  }
+}

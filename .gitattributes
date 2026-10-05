@@ -1,0 +1,6 @@
+# LF in the repository *and* in the working tree.
+#
+# This folder is two things at once: a checkout of this repository, and the desktop project's
+# `web/` folder. A checkout that rewrote these files to CRLF would be an edit to files that
+# belong to the project beside it, and the site is served by Linux either way.
+* text=auto eol=lf

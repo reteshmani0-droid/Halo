@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Get started with Halo — download, install, sign in</title>
+  <meta name="description" content="Three steps to a running Halo: download the build for your machine, install it and give it a model key, then sign in so this site can show the machine. Includes the two values the app asks for." />
+  <link rel="canonical" href="https://halo.example/start" />
+  <meta name="theme-color" content="#141210" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Get started with Halo" />
+  <meta property="og:description" content="Download, install, sign in. About five minutes." />
+  <meta property="og:image" content="/assets/img/icon.png" />
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <script src="/assets/js/config.js"></script>
+  <script src="/assets/js/ui.js" defer></script>
+  <script src="/assets/js/page-start.js" defer></script>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="/"><img src="/assets/img/mark.png" alt="" width="26" height="26" />Halo</a>
+      <nav class="site">
+        <a href="/">Home</a>
+        <a href="/download">Download</a>
+        <a href="/app">Dashboard</a>
+        <a class="btn small primary" href="/signin">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap" style="padding-top:32px;max-width:760px">
+    <h1>Get started</h1>
+    <!-- Shown only while the fleet is switched off. This is the page somebody reads before
+         downloading, so it is the page that should say so first. -->
+    <div id="fleetNote" class="note bad" hidden></div>
+    <p class="lead">
+      Three steps, about five minutes. The first two are on your own machine and need nothing from
+      this site; the third is what puts that machine on the dashboard.
+    </p>
+
+    <ol class="steps">
+      <li>
+        <div class="step-head"><span class="n">1</span><h2>Download the build for this machine</h2></div>
+        <p class="small muted">
+          Halo installs on the computer it runs on, so take the build for that computer. The button
+          is already the right one if you are reading this on it.
+        </p>
+        <div id="one" class="one-box"><span class="dim small">Finding the right build…</span></div>
+        <p class="small dim">
+          Every build, with its size and SHA-256, is on <a href="/download">the download page</a>.
+        </p>
+      </li>
+
+      <li>
+        <div class="step-head"><span class="n">2</span><h2>Install it and let it in on a model</h2></div>
+        <p class="small muted">
+          The Windows installer is per user, so it never asks for an administrator. On macOS the
+          build is unsigned for now, so the first launch is a right click on the app and
+          <strong>Open</strong>, once. On Linux, <code>chmod +x</code> the AppImage.
+        </p>
+        <p class="small muted">
+          The first run asks for a name, whether to start with Windows, and one thing that
+          cannot be skipped: a model to talk to. Halo speaks to any OpenAI compatible endpoint,
+          so an address and an API key from a provider you already pay for is enough.
+        </p>
+        <div class="card">
+          <div class="card-head"><h3 style="margin:0">Where a key comes from</h3></div>
+          <p class="small muted" style="margin:0 0 12px">
+            Anything that serves the OpenAI chat API: OpenAI itself, a local llama.cpp or Ollama
+            with its OpenAI shim, Groq, Together, DeepSeek, Moonshot, or a gateway of your own.
+          </p>
+          <p class="small muted" style="margin:0">
+            Two buttons on the <strong>Model</strong> page are worth pressing before you trust it:
+            <strong>Test connection</strong>, which sends one small message, and
+            <strong>Load the model list</strong>, which asks the endpoint what it serves right now.
+            Providers retire model names under you, and a retired one answers every message with a
+            404 until the name is changed.
+          </p>
+        </div>
+        <p class="small muted" style="margin-top:16px">
+          Then hold <kbd>Ctrl</kbd> + <kbd>Win</kbd> anywhere to talk to it, or open the window and
+          type. It lives in the tray; closing the window does not quit it. Your key is stored on
+          this machine and is never sent to this site.
+        </p>
+      </li>
+
+      <li>
+        <div class="step-head"><span class="n">3</span><h2>Sign in, so this site can see the machine</h2></div>
+        <p class="small muted">
+          Optional, and the app runs without it. With it, this site shows the machine, holds a copy
+          of the conversation so you can read it from a phone, and can cut the machine's remote
+          access off from anywhere.
+        </p>
+        <div class="btn-row">
+          <a class="btn primary" href="/signin">Create an account or sign in</a>
+          <a class="btn ghost" href="/app">Go to the dashboard</a>
+        </div>
+        <p class="small muted" style="margin-top:16px">
+          Then connect the machine itself: on the PC, open <strong>Settings</strong>, find the
+          <strong>Account</strong> group, and switch on <strong>Report to this account</strong>.
+          It asks for five things.
+        </p>
+        <div id="connect" class="card" hidden>
+          <div class="card-head">
+            <div class="grow">
+              <h3 style="margin:0">The two values to paste in</h3>
+              <span class="hint">These are not secrets, and this page is where everybody gets them</span>
+            </div>
+          </div>
+          <div class="copy-row">
+            <span class="small dim">Project URL</span>
+            <code id="projUrl">not configured</code>
+            <button class="btn small ghost" data-copy="#projUrl">Copy</button>
+          </div>
+          <div class="copy-row">
+            <span class="small dim">Anon key</span>
+            <code id="anonKey">not configured</code>
+            <button class="btn small ghost" data-copy="#anonKey">Copy</button>
+          </div>
+          <p class="small dim" style="margin:16px 0 0">
+            The anon key identifies the project; it does not authorise anything, because every
+            table has row level security on and decides for itself what a key may read. Paste it
+            into the app's <strong>Anon key</strong> field. Then fill in the same email and password
+            you use here, press <strong>Sign in</strong>, and press <strong>Sync now</strong>: the
+            machine appears on the dashboard within a minute.
+          </p>
+        </div>
+        <div class="note" id="connectNote" hidden></div>
+      </li>
+    </ol>
+
+    <section class="band">
+      <h2>From your phone</h2>
+      <div class="grid two">
+        <div class="card tight">
+          <h3>Read it on the dashboard</h3>
+          <p class="small muted" style="margin:0">
+            Signed in, <a href="/app">/app</a> works on a phone: the machines, what they have
+            been doing, and the messages they reported. It is a copy of the conversation, not the
+            live one, which stays on the machine.
+          </p>
+        </div>
+        <div class="card tight">
+          <h3>Or talk to it over a bot</h3>
+          <p class="small muted" style="margin:0">
+            In the app there is a <strong>Bot</strong> page that connects a Telegram bot, so you
+            can ask the machine something from outside the house with the app closed. Only the
+            chats you pair with it are obeyed.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <h2>If something does not work</h2>
+      <details class="faq" open>
+        <summary>It answers everything with an error about the model</summary>
+        <p>The endpoint, the key, or the model name. Press <strong>Test connection</strong> on the
+        Model page: the message it returns is the one the provider sent, which is usually specific.
+        A 404 almost always means the model name was retired; <strong>Load the model list</strong>
+        replaces it with one that exists.</p>
+      </details>
+      <details class="faq">
+        <summary>Nothing appears on the dashboard</summary>
+        <p>The switch in the app's Account group has to be on, and the project URL and anon key
+        have to be the ones above. The app shows its own reason under those fields: "not signed in"
+        and "the project has no tables yet" are the two common ones, and both say what to do.</p>
+      </details>
+      <details class="faq">
+        <summary>Windows says the publisher is unknown</summary>
+        <p>The build is not code signed, so SmartScreen warns on the first run. Choose
+        <strong>More info</strong>, then <strong>Run anyway</strong>. Installers on this site are
+        listed with their SHA-256: if the hash matches, the file is the one that was built.</p>
+      </details>
+      <details class="faq">
+        <summary>Ctrl + Win does nothing</summary>
+        <p>Another app may already own the combination. The bar's own settings can change the
+        shortcut, and the app's status line says when the global hook could not be installed.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <span>Halo</span>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/download">Download</a>
+        <a href="/signin">Sign in</a>
+        <a href="/app">Dashboard</a>
+        <a href="/privacy">Privacy</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
