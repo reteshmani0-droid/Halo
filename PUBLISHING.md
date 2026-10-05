@@ -72,7 +72,7 @@ setting it asks for is already answered in `vercel.json`, so the defaults are th
 | **Framework Preset** | **Other** (detected) | this is plain HTML; a preset would try to build it and fail |
 | **Root Directory** | **empty** (the repository root) | the site *is* the repository here — `vercel.json` and `index.html` are at the top |
 | **Build Command** | from `vercel.json`: `node tools/web-config.js` | fills in step 3's values, and changes nothing if there are none |
-| **Output Directory** | **empty** (the default) | there is no build output; the folder is deployed as it stands |
+| **Output Directory** | from `vercel.json`: `.` | the site *is* the repository root. Vercel's default for a project with no framework is `public/`, a folder this repository does not have — left alone, the build fails with *No Output Directory named "public" found after the Build completed* |
 | **Install Command** | the default | nothing is installed — this repository has no dependencies |
 
 From the terminal instead, from this folder: `npx vercel login` then `npx vercel --prod`, and
@@ -181,6 +181,7 @@ With neither, `/download` says there is nothing to download rather than offering
 
 | What you see | What it is | What to do |
 |---|---|---|
+| The deploy fails with **No Output Directory named "public" found after the Build completed** | Vercel is looking for a `public/` folder; this repository keeps its pages at the root | `vercel.json` sets `outputDirectory` to `.`, which overrides the dashboard for every deployment. If it still fails, clear **Settings → Build and Deployment → Output Directory** (and **Root Directory**, which must be empty) |
 | Every page says "the site has no database yet" | `config.js` still has empty strings, so the site behaves as if there were no project | Step 3, then a hard reload (Ctrl+F5) |
 | The deploy serves a **list of file names** | The project's root is a folder above the site | In Vercel, **Settings → Build and Deployment → Root Directory** empty, and `vercel.json` at the top of the deploy |
 | Sign-in works on production and fails on a preview URL | Supabase knows only about the production domain | Add the preview domain to **Redirect URLs**, or test sign-in on production |
