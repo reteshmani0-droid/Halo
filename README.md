@@ -317,7 +317,7 @@ also has no git hook behind it: nothing redeploys when you edit a file, you run 
 |---|---|---|
 | **Framework Preset** | **Other** | this is plain HTML; a preset would try to build it and fail |
 | **Root Directory** | `web` | the same requirement, set from the other side |
-| **Build Command** | empty, or `node ../tools/web-config.js` | empty is fine; the command is how the deploy fills in step 3's values |
+| **Build Command** | from `vercel.json`: `node tools/web-config.js` | it is already set there, so this field is overridden: it exists for the deploy's benefit, and running it changes nothing when the environment sets nothing |
 | **Output Directory** | empty (the default) | there is no build output to point at |
 | **Install Command** | leave the default | at root `web/` there is no `package.json` to install. Rooted at the repository instead, Vercel will install *this repo's* Electron dependencies — hundreds of megabytes, for a site that needs none |
 
@@ -365,6 +365,7 @@ site:
 
 | Entry | Why |
 |---|---|
+| `buildCommand` | runs `tools/web-config.js`, which fills step 3's values in from the environment at build time. It reads nothing it is not given, so a deploy with no variables set is untouched — and it works from either layout, because it finds the site rather than assuming where it is |
 | `cleanUrls` | `/download` and `/signin` serve `download.html` and `signin.html`, which is what every link in the site and the README assumes |
 | `trailingSlash: false` | one address per page rather than two |
 | `rewrites: /dashboard → /app` | the dashboard has been called both things; neither breaks |
