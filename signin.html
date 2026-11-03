@@ -19,7 +19,8 @@
   <script src="/assets/js/ui.js" defer></script>
   <script src="/assets/js/page-signin.js" defer></script>
 </head>
-<body>
+<body class="signin-page">
+  <a class="skip-link" href="#main">Skip to content</a>
   <header class="site">
     <div class="wrap">
       <a class="brand" href="/"><img src="/assets/img/mark.png" alt="" width="26" height="26" />Halo</a>
@@ -31,17 +32,15 @@
     </div>
   </header>
 
-  <main class="wrap" style="max-width:900px;padding-top:48px">
-    <h1 id="signTitle">Sign in</h1>
-    <p class="muted" id="signSub">
-      The dashboard shows the machines you have connected, what they have been doing, and
-      lets you cut one off. The desktop app works without an account.
-    </p>
-
-    <div id="setup" class="hidden"></div>
-
-    <div class="grid two split" style="margin-top:24px">
-      <div>
+  <main class="wrap auth-layout" id="main">
+    <div class="grid two split auth-grid">
+      <div class="auth-panel">
+        <div class="auth-heading">
+          <span class="eyebrow">YOUR PERSONAL WORKSPACE</span>
+          <h1 id="signTitle">Sign in</h1>
+          <p class="muted" id="signSub">Your machines, your conversations, and a little peace of mind. The desktop app works without an account.</p>
+        </div>
+        <div id="setup" class="hidden"></div>
         <div class="card">
           <form id="signForm" autocomplete="on">
             <label class="field" id="nameField" hidden>
@@ -89,8 +88,11 @@
         </div>
       </div>
 
-      <aside class="side">
-        <h2 style="font-size:16px">What an account gives you</h2>
+      <aside class="side auth-story">
+        <img src="/assets/img/mark.png" alt="" width="66" height="66" />
+        <span class="eyebrow">A LITTLE CLOSER TO HOME</span>
+        <h2 style="margin-top:16px">Your desktop.<br>Even from a distance.</h2>
+        <p>A quiet place for the computers you’ve connected, and the conversations you want to keep close.</p>
         <ul class="muted small ticks">
           <li>This machine on the dashboard, with its name, platform and model</li>
           <li>A copy of the conversation, readable from a phone</li>
@@ -107,7 +109,7 @@
       </aside>
     </div>
 
-    <p class="small dim">
+    <p class="small dim auth-footnote">
       Accounts are held in your own Supabase project. This page sends your email and password
       straight there, so nothing passes through a server of ours: there is no server of ours.
     </p>

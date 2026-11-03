@@ -23,6 +23,7 @@ web/
   assets/           stylesheet, scripts, icon
   downloads.json    generated: which builds exist, with sizes and hashes
   downloads/        the installers themselves, when you serve them from this domain
+  install.sh        the Linux one-liner: fetches the published build, checks the hash, installs it
   vercel.json       the deploy: the build command, clean URLs, one content security policy
   supabase/         schema.sql — the whole backend, run once in a Supabase project
   tools/            the two scripts the deploy and your laptop need; see tools/README.md
@@ -159,6 +160,13 @@ That serves the installers from this domain, which is fine for a preview. For a 
 them on a GitHub Release instead and set `downloads.baseUrl` in `assets/js/config.js`.
 
 *Look for:* `every listed build can actually be fetched`.
+
+On Linux there is a second route, and it is the one-click one: `install.sh` is served from the
+site and reads the same manifest, so `curl -fsSL https://yourdomain/install.sh | sh` picks the
+build for the reader's architecture, checks its SHA-256, and installs it into `~/.local/bin` with
+a `halo` command, a menu entry and an icon — no root. It follows `downloads.baseUrl` when one is
+set, and `HALO_SITE_URL` rewrites its baked-in address at build time. The download page shows the
+line only when the manifest lists a Linux build, so it never offers a download that is not there.
 
 ### 7. Say what your domain is
 
@@ -373,6 +381,27 @@ site:
 | **Content-Security-Policy** | `default-src 'self'`, plus **exactly two** other origins: the pinned `supabase-js` from jsDelivr (`script-src`) and `*.supabase.co` (`connect-src`). A page that fails to load a script is usually this policy working as intended |
 | `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, `Permissions-Policy` | the plain hygiene headers: no sniffing, no referrer leakage, no framing, and no camera, microphone, location or payment access from a page that has no need of any of them |
 | `Cache-Control` on `/assets` and `/downloads` | a page edit should be picked up on the next reload (an hour, with revalidation); an installer, once downloaded, never needs fetching again (a year, immutable) |
+
+## Typography
+
+The site is set in two self-hosted faces, and the line between them is deliberate.
+
+| | Where it is used |
+|---|---|
+| **IBM Plex Sans** | Everything at interface scale: navigation, buttons, paragraphs, tables, form labels, the account tools. It is the default the body inherits, named once as `--font` |
+| **Fraunces** | Display type only: the hero, section headings, the wordmark, and the mock window inside the hero. Reached for by name as `--display` |
+
+Plex was drawn for technical interfaces and holds up at 13px, which is what most of this site and
+the app are. Fraunces is the editorial voice, and it only appears where a heading is meant to be
+read rather than scanned — its optical-size axis gives a large heading the finer serifs and higher
+contrast that would be wrong at body size. The display stack keeps a **serif** fallback (Georgia),
+so a heading whose font fails to load still looks like a heading rather than becoming body text.
+
+Both faces are **self-hosted**, never fetched from a CDN: the first paint after a deploy should not
+wait on somebody else's server, and the site has no business telling a font host who opened it. The
+same two files ship in the desktop app, written into `ui/fonts/` and `web/assets/fonts/` in one run
+by `node tools/fonts.js`, and `tools/web-check.js` compares them by hash — a face updated here and
+not in the app is one product wearing two typefaces.
 
 A later edit that genuinely needs a third-party script or font goes into that policy —
 deliberately, with the origin named, which is the point of writing it down.

@@ -18,7 +18,8 @@
   <script src="/assets/js/ui.js" defer></script>
   <script src="/assets/js/page-download.js" defer></script>
 </head>
-<body>
+<body class="download-page">
+  <a class="skip-link" href="#main">Skip to content</a>
   <header class="site">
     <div class="wrap">
       <a class="brand" href="/"><img src="/assets/img/mark.png" alt="" width="26" height="26" />Halo</a>
@@ -31,24 +32,27 @@
     </div>
   </header>
 
-  <main class="wrap" style="padding-top:32px">
-    <h1>Download</h1>
-    <p class="lead">
-      Halo installs on the machine it runs on, so pick the build for that machine. If you are
-      reading this on it, the button below is already the right one.
-    </p>
+  <main class="wrap page-layout" id="main">
+    <div class="page-intro">
+      <span class="eyebrow">A LITTLE HELP, RIGHT HERE</span>
+      <h1>Make room for Halo.</h1>
+      <p class="lead">Your next pair of hands is a download away. Find the build for your computer, bring your model, and make yourself at home.</p>
+    </div>
 
     <!-- One click: the build for this machine, chosen from the published list rather than
          guessed, and named from the file it is about to hand over. -->
+    <div class="download-feature">
     <div id="one" class="one-box"><span class="dim small">Finding the right build…</span></div>
     <p class="dim small" id="dlStamp"></p>
 
     <div class="strip">
       <span class="dim small">First time?</span>
-      <a class="small" href="/start">Get started: download, install, sign in</a>
+      <a class="small" href="/start">Get started: download, install, sign in <span aria-hidden="true">↗</span></a>
+    </div>
     </div>
 
-    <h2 style="margin-top:32px" id="all">Every build</h2>
+    <span class="eyebrow">PICK YOUR PLATFORM</span>
+    <h2 style="margin-top:12px" id="all">One assistant. Your computer.</h2>
     <p class="small muted">
       Windows installers are per user, so no administrator is needed. Sending somebody a build?
       Link them to it directly: <code>/download?os=macos&amp;arch=arm64</code>.
@@ -76,8 +80,8 @@
       </p>
     </details>
 
-    <section style="margin-top:32px">
-      <h2>Requirements</h2>
+    <section class="requirements-section" style="margin-top:32px">
+      <h2>A quick compatibility check.</h2>
       <div class="grid two">
         <div class="card tight">
           <h3>Windows</h3>
@@ -96,6 +100,14 @@
           <p class="small">AppImage runs anywhere with <code>chmod +x</code>; the .deb is for
           Debian and Ubuntu on x64 or arm64. A desktop session is required: Halo has a window
           and a tray icon.</p>
+          <!-- Shown only when a Linux build is actually published, and filled in by
+               page-download.js with this deploy's own address: a command that downloads
+               nothing is worse than no command. -->
+          <div id="linuxInstall" class="hidden" style="margin-top:12px">
+            <p class="small" style="margin:0 0 6px">Or let the installer pick the right build,
+            check its SHA-256 and add a menu entry for you — no root, nothing outside your home:</p>
+            <div class="copy-row"><code id="linuxCmd">curl -fsSL /install.sh | sh</code></div>
+          </div>
         </div>
         <div class="card tight">
           <h3>All systems</h3>

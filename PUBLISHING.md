@@ -164,6 +164,21 @@ point at the files is `downloads.baseUrl`:
 With neither, `/download` says there is nothing to download rather than offering a button that
 404s — which is the site working as intended, not a fault.
 
+**On Linux there is a one-line install as well.** `install.sh` is served from the site and reads
+this same manifest, so
+
+```bash
+curl -fsSL https://yourdomain/install.sh | sh
+```
+
+fetches the AppImage for the reader's architecture, checks its SHA-256, and installs it into
+`~/.local/bin` with a `halo` command, a menu entry and an icon — no root, nothing outside the
+home directory, and `--uninstall` to undo it. It fetches from `downloads.baseUrl` when one is set,
+so it keeps working when the files live on a GitHub Release. `HALO_SITE_URL` rewrites the address
+baked into the script at build time, which is why the command always points at the domain that
+served it. The line is shown on the download page only once the manifest lists a Linux build, so
+it never advertises a download that is not there.
+
 ---
 
 ## Check it after deploying

@@ -20,6 +20,26 @@
   const data = await renderDownloads('#dlBox', { who: wanted() || visitor() });
   const tbody = $('#dlTable tbody');
   const assets = (data && data.assets) || [];
+  // Filled in by renderDownloads: a build this deploy is not holding. Nothing on the page
+  // links one, including the Linux one-liner below and the table of hashes at the bottom.
+  const missing = (data && data.missing) || new Set();
+
+  /*
+   * The Linux one-liner.
+   *
+   * Drawn here rather than written into the HTML for two reasons: the address it needs is the
+   * deploy's own, which only the browser knows, and it is shown only when a Linux build is
+   * really published — a command that fetches nothing is worse than no command. The fleet
+   * switch is respected as well, because closing the downloads has to close this too.
+   */
+  const install = $('#linuxInstall');
+  if (install) {
+    const fleet = await window.HaloUI.fleetStatus();
+    if (fleet.open && assets.some((a) => a.platform === 'linux' && !missing.has(a.url))) {
+      $('#linuxCmd').textContent = `curl -fsSL ${location.origin}/install.sh | sh`;
+      install.classList.remove('hidden');
+    }
+  }
   if (!assets.length) {
     const setup = $('#dlSetup');
     setup.classList.remove('hidden');
@@ -29,8 +49,9 @@
   }
   tbody.innerHTML = assets.map((a) => {
     const url = assetUrl(a);
+    const live = url && !missing.has(a.url);
     return `<tr>
-      <td>${url ? `<a href="${esc(url)}">${esc(a.file || a.url || 'download')}</a>` : `<span class="dim">${esc(a.file || 'not built')}</span>`}</td>
+      <td>${live ? `<a href="${esc(url)}">${esc(a.file || a.url || 'download')}</a>` : `<span class="dim">${esc(a.file || 'not built')}${missing.has(a.url) ? ' — not on this server' : ''}</span>`}</td>
       <td>${esc(OS_LABEL[a.platform] || a.platform || '')}</td>
       <td>${esc(a.arch || '')}${a.kind ? ` <span class="dim">${esc(a.kind)}</span>` : ''}</td>
       <td class="nowrap">${a.size ? esc(bytes(a.size)) : '<span class="dim">not built</span>'}</td>

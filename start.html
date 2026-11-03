@@ -18,7 +18,8 @@
   <script src="/assets/js/ui.js" defer></script>
   <script src="/assets/js/page-start.js" defer></script>
 </head>
-<body>
+<body class="start-page">
+  <a class="skip-link" href="#main">Skip to content</a>
   <header class="site">
     <div class="wrap">
       <a class="brand" href="/"><img src="/assets/img/mark.png" alt="" width="26" height="26" />Halo</a>
@@ -31,8 +32,12 @@
     </div>
   </header>
 
-  <main class="wrap" style="padding-top:32px;max-width:760px">
-    <h1>Get started</h1>
+  <main class="wrap page-layout reading-page" id="main">
+    <div class="page-intro">
+      <span class="eyebrow">YOUR FIRST FEW MINUTES</span>
+      <h1>A small setup.<br>A big helping hand.</h1>
+      <p class="lead">Download, connect a model, and ask your first question. The account part? Entirely up to you.</p>
+    </div>
     <!-- Shown only while the fleet is switched off. This is the page somebody reads before
          downloading, so it is the page that should say so first. -->
     <div id="fleetNote" class="note bad" hidden></div>
@@ -43,7 +48,7 @@
 
     <ol class="steps">
       <li>
-        <div class="step-head"><span class="n">1</span><h2>Download the build for this machine</h2></div>
+        <div class="step-head"><span class="n">1</span><h2>Find your fit.</h2></div>
         <p class="small muted">
           Halo installs on the computer it runs on, so take the build for that computer. The button
           is already the right one if you are reading this on it.
@@ -55,7 +60,7 @@
       </li>
 
       <li>
-        <div class="step-head"><span class="n">2</span><h2>Install it and let it in on a model</h2></div>
+        <div class="step-head"><span class="n">2</span><h2>Give Halo a brain.</h2></div>
         <p class="small muted">
           The Windows installer is per user, so it never asks for an administrator. On macOS the
           build is unsigned for now, so the first launch is a right click on the app and
@@ -88,7 +93,7 @@
       </li>
 
       <li>
-        <div class="step-head"><span class="n">3</span><h2>Sign in, so this site can see the machine</h2></div>
+        <div class="step-head"><span class="n">3</span><h2>Keep your desktop close. Optional.</h2></div>
         <p class="small muted">
           Optional, and the app runs without it. With it, this site shows the machine, holds a copy
           of the conversation so you can read it from a phone, and can cut the machine's remote

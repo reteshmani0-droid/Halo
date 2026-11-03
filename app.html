@@ -16,7 +16,8 @@
   <script src="/assets/js/ui.js" defer></script>
   <script src="/assets/js/page-app.js" defer></script>
 </head>
-<body>
+<body class="dashboard-page">
+  <a class="skip-link" href="#main">Skip to content</a>
   <header class="site">
     <div class="wrap">
       <a class="brand" href="/"><img src="/assets/img/mark.png" alt="" width="26" height="26" />Halo</a>
@@ -36,7 +37,8 @@
            desktop-to-desktop link, made and unmade on the machines themselves, and giving it a
            page on the web would offer a control this site has no way to honour. What belongs on
            the web is the list of machines and the switch that cuts one off. -->
-      <aside>
+      <aside aria-label="Dashboard sections">
+        <span class="rail-title">Your workspace</span>
         <nav class="rail">
           <a href="#overview" data-view="overview">Overview</a>
           <a href="#machines" data-view="machines">Machines</a>
@@ -47,10 +49,11 @@
         </nav>
       </aside>
 
-      <main class="main">
+      <main class="main" id="main">
         <div class="page-head">
           <div class="grow">
-            <h1 id="greeting">Dashboard</h1>
+            <span class="eyebrow">EVERYTHING IN ITS PLACE</span>
+            <h1 id="greeting" style="margin-top:12px">Your workspace.</h1>
             <p class="muted small" id="subtitle">Reading your account…</p>
           </div>
           <button class="btn small" id="refreshBtn">Refresh</button>

@@ -48,6 +48,8 @@ const notes = [];
 
 /** A string literal for the config file, escaped for the single quotes around it. */
 const one = (v) => `'${String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+/** A value going inside double quotes in a shell script: the shell reads $, ` and \ itself. */
+const shq = (v) => String(v).replace(/["\\$`]/g, (c) => '\\' + c);
 
 /**
  * Replace the first match of `pattern`, building the replacement from the capture groups.
@@ -83,6 +85,14 @@ if (env.SUPABASE_ANON_KEY) {
 }
 if (env.HALO_DOWNLOADS_BASE) {
   edit(configFile, inBlock('downloads', 'baseUrl'), (head) => head + one(env.HALO_DOWNLOADS_BASE.trim()), 'downloads.baseUrl');
+  // The Linux installer reads the same base, because on a deploy where the files live on a
+  // release the script has to fetch them from there too. Only the default is rewritten: the
+  // environment still wins when somebody runs the script themselves.
+  edit(path.join(webDir, 'install.sh'),
+    /(BASE="\$\{HALO_DOWNLOADS_BASE:-)(\}")/,
+    (head, tail) => `${head}${shq(env.HALO_DOWNLOADS_BASE.trim())}${tail}`,
+    'install.sh downloads base',
+    { done: /BASE="\$\{HALO_DOWNLOADS_BASE:-https?:/ });
 }
 if (env.HALO_CONTACT_EMAIL) {
   edit(configFile, /(contactEmail:\s*)'[^']*'/, (head) => head + one(env.HALO_CONTACT_EMAIL.trim()), 'contactEmail');
@@ -108,6 +118,12 @@ if (env.HALO_SITE_URL) {
   const there = new RegExp(site.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   const files = fs.existsSync(webDir) ? fs.readdirSync(webDir) : [];
   if (!files.length) notes.push(`HALO_SITE_URL: nothing to rewrite in ${webDir}`);
+  // The Linux one-liner carries the same claim, and a placeholder there is not cosmetic: the
+  // script would go looking for its manifest on a domain that does not exist. Only the default
+  // is rewritten, so HALO_SITE still wins when the script is run by hand.
+  edit(path.join(webDir, 'install.sh'),
+    /(SITE="\$\{HALO_SITE_URL:-)https:\/\/halo\.example(\}")/,
+    (head, tail) => `${head}${site}${tail}`, 'install.sh site', { done: there });
   for (const f of files) {
     const full = path.join(webDir, f);
     if (f.endsWith('.html')) {
