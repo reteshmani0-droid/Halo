@@ -7,7 +7,7 @@
       "arch": "arm64",
       "kind": "installer",
       "file": "Halo Setup 1.0.0-arm64.exe",
-      "url": "downloads/Halo Setup 1.0.0-arm64.exe",
+      "url": "downloads/Halo.Setup.1.0.0-arm64.exe",
       "size": 82399061,
       "sha256": "2475a7128f35d51bf624336b19d0781968b1082b3972cc902925e0f11a99f786"
     },
@@ -25,7 +25,7 @@
       "arch": "x64",
       "kind": "installer",
       "file": "Halo Setup 1.0.0-x64.exe",
-      "url": "downloads/Halo Setup 1.0.0-x64.exe",
+      "url": "downloads/Halo.Setup.1.0.0-x64.exe",
       "size": 76068640,
       "sha256": "170177bd0f0bff50e87c53fd74c20cdf421c01a24acb3cd21e6d3f2389966e09"
     },
@@ -43,7 +43,7 @@
       "arch": "universal",
       "kind": "installer",
       "file": "Halo Setup 1.0.0.exe",
-      "url": "downloads/Halo Setup 1.0.0.exe",
+      "url": "downloads/Halo.Setup.1.0.0.exe",
       "size": 157575027,
       "sha256": "8c0d22d3983e697ce1783c40a55753ecd33c1e81b880947df5ed13b2e750b5a4"
     },

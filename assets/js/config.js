@@ -29,7 +29,7 @@ window.HALO_CONFIG = {
   // this same domain (put them in web/downloads/).
   downloads: {
     manifest: '/downloads.json',
-    baseUrl: '',
+    baseUrl: 'https://github.com/reteshmani0-droid/Halo/releases/download/v1.0.0',
   },
 
   // Shown on the site. The admin page does not trust this list — it asks the database for

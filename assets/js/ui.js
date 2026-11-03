@@ -177,10 +177,13 @@ window.HaloUI = (function () {
   function assetUrl(asset) {
     const base = (cfg.downloads && cfg.downloads.baseUrl) || '';
     if (/^https?:/i.test(asset.url || '')) return encodeURI(asset.url);
-    const path = asset.url || asset.file || '';
-    const full = base
-      ? base.replace(/\/$/, '') + '/' + String(path).replace(/^\//, '')
-      : String(path);
+    const path = String(asset.url || asset.file || '');
+    // The manifest names every build "downloads/<file>", because that is where this site keeps
+    // them. A baseUrl is the folder that holds the files themselves - a GitHub Release, say - so
+    // the "downloads/" prefix is not part of the path there. Joining it anyway would ask for
+    // /releases/download/v1.0.0/downloads/Halo%20Setup.exe, which is a 404.
+    const rel = base ? path.replace(/^\/?downloads\//i, '') : path.replace(/^\//, '');
+    const full = base ? base.replace(/\/$/, '') + '/' + rel : rel;
     // A build is called "Halo Setup 1.0.0-x64.exe". The space is legal in a URL and this is
     // what settles it as %20 rather than as whatever a given server decides to do with it.
     return encodeURI(full);
@@ -301,6 +304,39 @@ window.HaloUI = (function () {
   };
 
   /**
+   * Is there really a file behind this URL?
+   *
+   * The manifest is generated on a machine that had the files. The deploy is whatever was
+   * committed, and those are not the same thing: this site's installers are gitignored build
+   * output, so a manifest can list six builds that a deploy has never held. That is the exact
+   * failure this page exists to prevent, and the manifest alone cannot see it.
+   *
+   * So the files are asked about before they are offered. Only a same-origin answer is believed:
+   * a GitHub Release answers a HEAD without CORS headers, the browser then refuses to report a
+   * status, and "the browser would not tell me" is not "the file is gone". Anything unknown is
+   * offered exactly as before, and any error is a shrug rather than a refusal.
+   *
+   * 404 means missing. 0 means could not ask.
+   */
+  function ours(url) {
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(url)) return true;
+    return url.indexOf(location.origin + '/') === 0;
+  }
+  async function probe(url) {
+    if (typeof fetch !== 'function' || !ours(url)) return 0;
+    const control = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = control ? setTimeout(() => control.abort(), 4000) : null;
+    try {
+      const res = await fetch(url, { method: 'HEAD', cache: 'no-store', signal: control ? control.signal : undefined });
+      return res.status;
+    } catch (_) {
+      return 0;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  /**
    * The one button most people want: the build for the machine they are reading this on.
    *
    * Everything it says is read back off the asset it is about to link to, so the label, the
@@ -330,14 +366,32 @@ window.HaloUI = (function () {
       const why = who.mobile
         ? 'This page is open on a phone or a tablet. Halo installs on a desktop.'
         : assets.length ? 'No build for this system has been published yet.' : 'No builds have been published yet.';
+      // A dead end is not an answer. If there is no file for this machine, the one thing that
+      // does work is building it, and that is two commands rather than a support thread.
+      const recipe = !who.mobile && who.os && assets.length
+        ? `<span class="dim small">Until then, build it: <code>npm install &amp;&amp; npm run build:${who.os === 'macos' ? 'mac' : who.os}</code></span>`
+        : '';
       box.innerHTML = '<div class="one">'
         + `<span class="dim small">${esc(why)}</span>`
+        + recipe
         + (alt ? ` <a class="btn small" href="${esc(alt)}">See every build</a>` : '')
         + '</div>';
       return data;
     }
 
     const url = assetUrl(mine);
+    // A button is a promise that something downloads. A 404 here is the one thing this page is
+    // built not to do, so the button is not drawn at all — and the reason is said plainly
+    // instead of leaving somebody to conclude their machine is at fault.
+    if (await probe(url) === 404) {
+      box.innerHTML = '<div class="one">'
+        + '<span class="label">This build is not on the server</span>'
+        + `<span class="dim small">The page lists ${esc(mine.file || 'a build')}, but this deploy has no copy of it. Nothing is wrong with your computer.</span>`
+        + (alt ? ` <a class="btn small" href="${esc(alt)}">See every build</a>` : '')
+        + '</div>';
+      return data;
+    }
+
     const label = (OS_LABEL[mine.platform] || mine.platform)
       + (mine.arch ? ` (${archShort(mine.arch)})` : '');
     const size = mine.size ? bytes(mine.size) : '';
@@ -379,13 +433,22 @@ window.HaloUI = (function () {
     }
     const osList = order.filter((o) => byOs.has(o)).concat(Array.from(byOs.keys()).filter((o) => !order.includes(o)));
 
+    // Asked in parallel, once: a deploy that lost its installers should say so in one sentence
+    // rather than leave somebody to discover it six times, one failed download each.
+    const status = new Map();
+    await Promise.all((data.assets || []).map(async (a) => { status.set(a, await probe(assetUrl(a))); }));
+    const gone = (data.assets || []).filter((a) => status.get(a) === 404).length;
+    // Remembered for the page's own table of hashes, so it does not link what the buttons here
+    // have just refused to link.
+    data.missing = new Set((data.assets || []).filter((a) => status.get(a) === 404).map((a) => a.url));
+
     if (!osList.length) {
       box.innerHTML = '<div class="note bad">No builds are published yet. '
         + 'Run <code>npm run release:manifest</code> after a build, then commit <code>web/downloads.json</code>.</div>';
       return data;
     }
 
-    box.innerHTML = osList.map((os) => {
+    const cards = osList.map((os) => {
       // ARM64 is listed first: it is the build the project is built for now, and the one the
       // visitor wants on a modern Mac or a Snapdragon laptop. The visitor's own architecture
       // is marked as well, so neither reading of "which do I want" needs a second page.
@@ -396,14 +459,22 @@ window.HaloUI = (function () {
         <div class="tag">${esc(OS_NOTE[os] || '')}</div>
         <div class="arch">${archs.map((a) => {
           const url = assetUrl(a);
-          const recommended = os === who.os && a.arch === who.arch;
-          return `<a class="btn${recommended ? ' recommended' : ''}${url ? '' : ' missing'}"${url ? ` href="${esc(url)}"${a.size ? ` data-size="${a.size}"` : ''}` : ' aria-disabled="true"'}`
+          const missing = status.get(a) === 404;
+          const live = Boolean(url) && !missing;
+          const recommended = os === who.os && a.arch === who.arch && live;
+          return `<a class="btn${recommended ? ' recommended' : ''}${live ? '' : ' missing'}"${live ? ` href="${esc(url)}"${a.size ? ` data-size="${a.size}"` : ''}` : ' aria-disabled="true"'}`
             + ` title="${esc(a.file || a.label || '')}">`
             + `<span><b>${esc(ARCH_LABEL[a.arch] || a.arch)}</b>${a.kind ? ` · ${esc(a.kind)}` : ''}</span>`
-            + `<span class="size">${a.size ? esc(bytes(a.size)) : 'not built yet'}</span></a>`;
+            + `<span class="size">${missing ? 'not on this server' : a.size ? esc(bytes(a.size)) : 'not built yet'}</span></a>`;
         }).join('')}</div>
       </div>`;
     }).join('');
+
+    // Said once, above the list, when the deploy is not holding what the manifest names: six
+    // disabled buttons with no explanation read as six broken buttons.
+    box.innerHTML = (gone
+      ? `<div class="note bad" style="margin-bottom:16px">${gone} of these ${gone === 1 ? 'files is' : 'files are'} listed but not on this server, so ${gone === 1 ? 'it is' : 'they are'} shown disabled rather than as a link that fails. They were built somewhere this deploy never received.</div>`
+      : '') + cards;
 
     const stamp = $('#dlStamp');
     if (stamp) {
