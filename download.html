@@ -6,7 +6,7 @@
   <title>Download Halo for Windows, macOS and Linux (ARM64 and x64)</title>
   <meta name="description" content="Download Halo for Windows, macOS or Linux. ARM64 builds for Apple silicon and Windows on ARM, x64 builds for Intel and AMD. Sizes and SHA-256 checksums for every file." />
   <link rel="canonical" href="https://halo.example/download" />
-  <meta name="theme-color" content="#f7f5f1" />
+  <meta name="theme-color" content="#000000" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="manifest" href="/site.webmanifest" />
   <meta property="og:type" content="website" />
@@ -39,8 +39,6 @@
       <p class="lead">Your next pair of hands is a download away. Find the build for your computer, bring your model, and make yourself at home.</p>
     </div>
 
-    <!-- One click: the build for this machine, chosen from the published list rather than
-         guessed, and named from the file it is about to hand over. -->
     <div class="download-feature">
     <div id="one" class="one-box"><span class="dim small">Finding the right build…</span></div>
     <p class="dim small" id="dlStamp"></p>
@@ -98,15 +96,17 @@
         <div class="card tight">
           <h3>Linux</h3>
           <p class="small">AppImage runs anywhere with <code>chmod +x</code>; the .deb is for
-          Debian and Ubuntu on x64 or arm64. A desktop session is required: Halo has a window
-          and a tray icon.</p>
-          <!-- Shown only when a Linux build is actually published, and filled in by
-               page-download.js with this deploy's own address: a command that downloads
-               nothing is worse than no command. -->
+          Debian and Ubuntu on x64 or arm64; the Flatpak installs on any distribution that has
+          flatpak, and is the one that carries its own runtime. A desktop session is required:
+          Halo has a window and a tray icon, and Ctrl+Win opens the notch without a keyboard hook.</p>
+          <p class="small" style="margin:12px 0 0">
+            The installer script — no root, nothing outside your home:
+            <a href="/install.sh" download>install.sh</a>
+          </p>
           <div id="linuxInstall" class="hidden" style="margin-top:12px">
             <p class="small" style="margin:0 0 6px">Or let the installer pick the right build,
             check its SHA-256 and add a menu entry for you — no root, nothing outside your home:</p>
-            <div class="copy-row"><code id="linuxCmd">curl -fsSL /install.sh | sh</code></div>
+            <div class="copy-row"><code id="linuxCmd"></code></div>
           </div>
         </div>
         <div class="card tight">
