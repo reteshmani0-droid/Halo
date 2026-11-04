@@ -1,209 +1,370 @@
-#!/bin/sh
-# Halo for Linux — the one-line installer.
+#!/usr/bin/env bash
+# Halo for Linux — one click.
 #
-#   curl -fsSL https://halo.example/install.sh | sh
+#     curl -fsSL https://halo-iota-three.vercel.app/install.sh | sh
 #
-# What it does: asks this site's download manifest for the build that runs on this machine,
-# checks its SHA-256, and installs it for you alone — the program in ~/.local/bin, a `halo`
-# command beside it, and a menu entry and icon under ~/.local/share. No root, nothing written
-# outside your home, and your settings are never touched.
+# What this does, and what it deliberately does not:
 #
-#   * The AppImage is preferred, because it is the build that needs no privileges at all.
-#   * A machine with only a .deb published gets the package installed with apt, which asks for
-#     your password. That is the one place this script cannot avoid root.
+#   * It installs the build that fits this machine, in this order of preference:
+#       Flatpak   — if flatpak is installed and a Flatpak is published. It carries its own
+#                   runtime, so it is the one that does not care which distribution this is.
+#       AppImage  — otherwise. One file, no root, no package manager to fall over on.
+#       .deb      — never installed automatically, because it needs root. The command is
+#                   printed for you to run.
+#   * It downloads from the site that served this script, reads the published manifest
+#     (downloads.json) to find the right file, and checks the file against the SHA-256 in
+#     that manifest. A download that does not match is deleted, not installed.
+#   * It writes into your own home: ~/.local/bin for the program, ~/.local/share for the
+#     menu entry and the icon. Nothing here needs sudo, and nothing outside your home is
+#     touched. The Flatpak route installs for the current user too (`--user`).
+#   * It does not delete or rewrite your settings. They live in ~/.config/Halo (or
+#     $XDG_CONFIG_HOME/Halo), or ~/.var/app/com.halo.Halo/config/Halo for the Flatpak, and
+#     belong to the app, not to the installer.
 #
-# Options:
-#   sh install.sh --uninstall     remove the program, the command, the menu entry and the icon
-#   HALO_MANIFEST=<url>           read a different manifest (a preview deploy, a fork)
-#   HALO_DOWNLOADS_BASE=<url>     fetch the files from somewhere else (a GitHub Release)
+# Usage:
+#   sh install.sh                     install the best build for this machine
+#   sh install.sh --flatpak           insist on the Flatpak
+#   sh install.sh --appimage          insist on the AppImage
+#   sh install.sh --deb               download the .deb and print the apt line for it
+#   sh install.sh --list              show the Linux builds that are published
+#   sh install.sh path/to/Halo.flatpak  install a file you already have
+#   sh install.sh --uninstall         remove the program, menu entry and icon
 #
-# The installers are published by .github/workflows/build.yml. Until a Linux build is attached
-# to a release this stops and says so, rather than installing half of something.
-set -eu
+# Building from source instead:  npm run build:linux  &&  npm run build:flatpak
+#   ...then run this script from the repository and it installs what is in dist/.
+set -euo pipefail
 
 APP_NAME="Halo"
 APP_ID="halo"
-# The address this file was deployed with. tools/web-config.js rewrites both defaults from
-# HALO_SITE_URL and HALO_DOWNLOADS_BASE at build time; the environment still wins, which is what
-# makes a preview deploy, a fork or a LAN test work without editing this file.
-SITE="${HALO_SITE_URL:-https://halo.example}"
-BASE="${HALO_DOWNLOADS_BASE:-}"
-MANIFEST="${HALO_MANIFEST:-$SITE/downloads.json}"
-
+FLATPAK_ID="com.halo.Halo"
+BASE="${HALO_BASE_URL:-https://halo-iota-three.vercel.app}"
 BIN_DIR="${XDG_BIN_HOME:-$HOME/.local/bin}"
 DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}"
 APPS_DIR="$DATA_DIR/applications"
 ICON_DIR="$DATA_DIR/icons/hicolor/512x512/apps"
-TARGET="$BIN_DIR/$APP_NAME.AppImage"
 DESKTOP_FILE="$APPS_DIR/$APP_ID.desktop"
+TARGET="$BIN_DIR/$APP_NAME.AppImage"
+MY_ARCH="$(uname -m)"
+# When this script is piped to sh there is no file next to it, so there is no dist/ to look
+# in — that is the normal case for the one-liner, and the reason for the download path below.
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]:-$PWD/install.sh}")" 2>/dev/null && pwd || pwd)"
+WORK=""
 
 say() { printf '  %s\n' "$1"; }
 die() { printf '\n  %s\n\n' "$1" >&2; exit 1; }
 have() { command -v "$1" >/dev/null 2>&1; }
+cleanup() { [ -n "$WORK" ] && rm -rf "$WORK"; }
+trap cleanup EXIT
 
-# ---- uninstall --------------------------------------------------------------
+# ---- uninstall ------------------------------------------------------------
 
-if [ "${1:-}" = "--uninstall" ]; then
+uninstall() {
   rm -f "$DESKTOP_FILE" "$ICON_DIR/$APP_ID.png" "$BIN_DIR/$APP_ID" "$TARGET"
   if have update-desktop-database; then
     update-desktop-database "$APPS_DIR" >/dev/null 2>&1 || true
   fi
-  say "$APP_NAME is uninstalled."
+  if have flatpak && flatpak info "$FLATPAK_ID" >/dev/null 2>&1; then
+    flatpak uninstall --user -y "$FLATPAK_ID" >/dev/null 2>&1 || true
+    say "The Flatpak was removed as well."
+  fi
+  say "Halo is uninstalled."
   say "Your settings and history in ${XDG_CONFIG_HOME:-$HOME/.config}/Halo were left alone."
-  if have dpkg && dpkg -s halo >/dev/null 2>&1; then
-    say "The .deb is still installed; remove it with:  sudo apt remove halo"
-  fi
   exit 0
-fi
-
-# ---- what machine is this ---------------------------------------------------
-
-case "$(uname -m)" in
-  x86_64|amd64) ARCH=x64 ;;
-  aarch64|arm64) ARCH=arm64 ;;
-  *) ARCH="$(uname -m)" ;;
-esac
-
-have curl || die "curl is needed to download the build, and it is not on PATH.
-  Install it (Debian/Ubuntu: sudo apt install curl) and run this again."
-
-# ---- what has been published ------------------------------------------------
-
-TMP="$(mktemp -d 2>/dev/null || mktemp -d -t halo)" || die "Could not make a temporary folder."
-trap 'rm -rf "$TMP"' EXIT INT TERM
-
-curl -fsSL "$MANIFEST" -o "$TMP/downloads.json" \
-  || die "Could not read the download list at $MANIFEST
-  Nothing is installed. Check the address, or open it in a browser to see what it says."
-
-# The manifest is written by tools/release-manifest.js, which puts each build on its own line
-# and indents every field, so a build can be found without a JSON parser: the objects are split
-# onto separate lines here and matched by the three fields that identify one.
-FLAT="$(tr -d '\n' < "$TMP/downloads.json" | sed 's/}[[:space:]]*,[[:space:]]*{/}\n{/g')"
-obj() {
-  printf '%s\n' "$FLAT" \
-    | grep -F '"platform": "linux"' \
-    | grep -F "\"arch\": \"$ARCH\"" \
-    | grep -F "\"kind\": \"$1\"" \
-    | head -n 1 || true
 }
-field() { printf '%s\n' "$1" | sed -n "s/.*\"$2\": \"\\([^\"]*\\)\".*/\\1/p"; }
 
-KIND=AppImage
-ASSET="$(obj AppImage)"
-if [ -z "$ASSET" ]; then
-  KIND=deb
-  ASSET="$(obj deb)"
-fi
-[ -n "$ASSET" ] || die "No Linux build is published for this machine ($ARCH).
-  The download page lists what does exist: $SITE/download
-  Building it yourself is two commands: npm install && npm run build:linux"
+# ---- read the published manifest -----------------------------------------
+#
+# downloads.json is a flat array of one line per asset, so it is read here without needing
+# jq, python or node on the machine: newlines are removed, the objects are split back apart,
+# and each field is pulled out of the one-line object. The site writes the file; this script
+# only reads it, which is what keeps the published list and the installer in step.
 
-URL="$(field "$ASSET" url)"
-FILE="$(field "$ASSET" file)"
-SHA="$(field "$ASSET" sha256)"
-[ -n "$URL" ] || die "The download list has a Linux build with no address in it. Nothing is installed."
-[ -n "$FILE" ] || FILE="halo-$KIND"
+fetch_manifest() {
+  have curl || die "curl is needed to download Halo — install it (apt install curl) and run this again."
+  WORK="${WORK:-$(mktemp -d)}"
+  curl -fsSL "$BASE/downloads.json" -o "$WORK/downloads.json" 2>/dev/null \
+    || die "Could not read $BASE/downloads.json — the site is unreachable, or nothing is published yet."
+  # The newline at the end matters: `while read` skips a final line that has none, which
+  # would silently hide the last published build from every choice below.
+  { tr -d '\n' < "$WORK/downloads.json" | sed -E 's/}[[:space:]]*,[[:space:]]*\{/}\n{/g'; printf '\n'; } > "$WORK/assets"
+}
 
-# Relative addresses are joined to whatever serves them: the release named by
-# downloads.baseUrl, or this site's own folder when there is none.
-case "$URL" in
-  http://*|https://*) FULL="$URL" ;;
-  /*) FULL="$SITE$URL" ;;
-  *) if [ -n "$BASE" ]; then FULL="${BASE%/}/${URL#downloads/}"; else FULL="$SITE/$URL"; fi ;;
-esac
-# A space is legal in a file name and has to be encoded in a URL.
-FULL="$(printf '%s' "$FULL" | sed 's/ /%20/g')"
+field() { sed -n 's/.*"'"$2"'": "\([^"]*\)".*/\1/p' <<<"$1"; }
 
-say "Downloading $APP_NAME for $ARCH ..."
-curl -fL --progress-bar "$FULL" -o "$TMP/$FILE" \
-  || die "Could not download $FULL
-  Nothing is installed. The file may have moved to a new release; see $SITE/download"
+# Whether a manifest arch is this machine. The two spellings are both in use on purpose: the
+# Flatpak is named after `uname -m` (x86_64, aarch64) and electron-builder after its own
+# names (x64, arm64).
+arch_ok() {
+  case "$MY_ARCH:$1" in
+    x86_64:x86_64|x86_64:x64|amd64:x86_64|amd64:x64) return 0 ;;
+    aarch64:aarch64|aarch64:arm64|arm64:aarch64|arm64:arm64) return 0 ;;
+  esac
+  return 1
+}
 
-if [ -n "$SHA" ]; then
-  GOT=''
-  if have sha256sum; then GOT="$(sha256sum "$TMP/$FILE" | cut -d' ' -f1)"
-  elif have shasum; then GOT="$(shasum -a 256 "$TMP/$FILE" | cut -d' ' -f1)"; fi
-  if [ -z "$GOT" ]; then
-    say "No sha256 tool on this machine, so the download was not checked."
-  elif [ "$GOT" != "$SHA" ]; then
-    die "The download does not match the hash published for it.
-  Expected $SHA
-  Got      $GOT
-  Nothing is installed. Try again, and if it keeps happening, do not run the file."
+# The first published Linux asset of the first kind asked for, as one manifest line.
+choose() {
+  local kind line
+  for kind in "$@"; do
+    while IFS= read -r line; do
+      [ -n "$line" ] || continue
+      case "$line" in *'"platform": "linux"'*) ;; *) continue ;; esac
+      [ "$(field "$line" kind)" = "$kind" ] || continue
+      arch_ok "$(field "$line" arch)" || continue
+      printf '%s\n' "$line"
+      return 0
+    done < "$WORK/assets"
+  done
+  return 1
+}
+
+list_assets() {
+  fetch_manifest
+  local line found=0
+  say "Linux builds published at $BASE:"
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    case "$line" in *'"platform": "linux"'*) ;; *) continue ;; esac
+    found=1
+    say "  $(field "$line" kind)  $(field "$line" arch)  $(field "$line" file)"
+  done < "$WORK/assets"
+  # Saying there is nothing is the point of this flag: a finished-looking list that is
+  # silently empty sends people to a 404.
+  [ "$found" = "1" ] || say "  (none yet — the builds are added to this list when they are released)"
+}
+
+# Download an asset and refuse it unless it matches the published SHA-256. Only the path of
+# the finished file goes to stdout, because every caller captures it with $(...): the progress
+# and the chatter have to go to stderr or they end up inside the file name.
+grab() {
+  local line="$1" url file sha full actual
+  url="$(field "$line" url)"
+  file="$(field "$line" file)"
+  sha="$(field "$line" sha256)"
+  [ -n "$url" ] || die "The published entry has no download address — the manifest is incomplete."
+  case "$url" in
+    http://*|https://*) full="$url" ;;
+    /*) full="$BASE$url" ;;
+    *) full="$BASE/$url" ;;
+  esac
+  WORK="${WORK:-$(mktemp -d)}"
+  say "downloading $file" >&2
+  curl -fL --progress-bar "$full" -o "$WORK/$file" \
+    || die "Could not download $full"
+  if [ -n "$sha" ] && have sha256sum; then
+    actual="$(sha256sum "$WORK/$file" | cut -d' ' -f1)"
+    if [ "$actual" != "$sha" ]; then
+      rm -f "$WORK/$file"
+      die "The download does not match the published SHA-256 and was deleted.
+  expected  $sha
+  got       $actual
+  This means the file changed in transit or was replaced; try again, and if it keeps
+  happening do not install it — download it by hand from $BASE/download."
+    fi
+    say "checksum matches" >&2
   fi
-fi
+  printf '%s\n' "$WORK/$file"
+}
 
-# ---- install ----------------------------------------------------------------
+# ---- install the three kinds ---------------------------------------------
 
-if [ "$KIND" = deb ]; then
-  have apt-get || die "This machine has no apt, so the published .deb cannot be installed here.
-  The AppImage is the build that needs nothing: $SITE/download"
-  say "Installing the package — this asks for your password ..."
-  sudo apt-get install -y "$TMP/$FILE" || die "apt refused the package. Nothing is installed."
-  printf '\n'
-  say "$APP_NAME is installed."
-  say "  command  $APP_ID   (from the package)"
-  exit 0
-fi
+install_flatpak() {
+  local file="$1" src
+  if [ -d "$file" ]; then src="$file"; else src="$(grab "$file")"; fi
+  have flatpak || die "flatpak is not installed — the AppImage needs no package manager:
+  sh install.sh --appimage"
+  say "installing the Flatpak"
+  flatpak install --user -y "$src" || die "flatpak install failed. The bundle is at $src"
+  say "Halo is installed."
+  say "  run      flatpak run $FLATPAK_ID"
+  say "  settings ${XDG_CONFIG_HOME:-$HOME/.config}/Halo, inside the Flatpak's own folder"
+  say "  remove   sh install.sh --uninstall"
+}
 
-mkdir -p "$BIN_DIR" "$APPS_DIR" "$ICON_DIR"
-chmod +x "$TMP/$FILE"
-cp "$TMP/$FILE" "$TARGET"
-chmod 755 "$TARGET"
-ln -sf "$TARGET" "$BIN_DIR/$APP_ID"
+install_deb() {
+  local file="$1" src
+  if [ -d "$file" ]; then src="$file"; else src="$(grab "$file")"; fi
+  # Handing somebody a sudo prompt from a script they piped into sh is not a thing to do
+  # quietly, so the command is printed and the script stops.
+  echo ""
+  say "The .deb is downloaded and checked. Installing it needs root, so run:"
+  say "  sudo apt install \"$src\""
+  echo ""
+  say "No root? Use the AppImage or the Flatpak instead:  sh install.sh --appimage"
+}
 
-# The menu icon comes out of the AppImage itself, so a machine that has only this script still
-# gets a real icon rather than a generic one.
-( cd "$TMP" && "$TARGET" --appimage-extract '*.png' >/dev/null 2>&1 ) || true
-ICON_SRC="$(find "$TMP/squashfs-root" -type f -name '*.png' -size +1k 2>/dev/null | head -n 1 || true)"
-if [ -n "$ICON_SRC" ]; then
-  cp "$ICON_SRC" "$ICON_DIR/$APP_ID.png"
-  ICON="$ICON_DIR/$APP_ID.png"
-else
-  ICON=utilities-terminal
-fi
+install_appimage() {
+  local APPIMAGE="$1"
+  [ -f "$APPIMAGE" ] || die "There is no file at $APPIMAGE"
 
-# Ubuntu 24.04 and later refuse unprivileged user namespaces to unconfined apps, which is how
-# Chromium's sandbox starts. An AppImage dies there before drawing a window, with a message that
-# reads like a broken install. The flag goes in the menu entry so the icon actually opens it.
-SANDBOX=''
-RESTRICT=/proc/sys/kernel/apparmor_restrict_unprivileged_userns
-if [ -r "$RESTRICT" ] && [ "$(cat "$RESTRICT" 2>/dev/null || echo 0)" = "1" ]; then
-  SANDBOX='--no-sandbox'
-fi
+  mkdir -p "$BIN_DIR" "$APPS_DIR" "$ICON_DIR"
+  install -m 755 "$APPIMAGE" "$TARGET"
+  ln -sf "$TARGET" "$BIN_DIR/$APP_ID"
 
-# Exec quoting: the path can contain spaces, and a .desktop Exec is not a shell — it needs its
-# own quoting, which is the double quotes around the path.
-cat > "$DESKTOP_FILE" <<EOF
+  # The menu icon. The repository has one at full size; an install from a downloaded
+  # AppImage alone extracts the icon it already carries, so a single file is still a
+  # complete install.
+  local ICON_SRC="$HERE/assets/icon-1024.png"
+  if [ ! -f "$ICON_SRC" ]; then
+    local TMP_ICON
+    TMP_ICON="$(mktemp -d)"
+    ( cd "$TMP_ICON" && "$TARGET" --appimage-extract '*.png' >/dev/null 2>&1 ) || true
+    ICON_SRC="$(find "$TMP_ICON" -type f -name '*.png' -size +1k 2>/dev/null | head -n 1 || true)"
+    # Only the directory this script made: a squashfs-root left in /tmp by somebody else's
+    # AppImage is not ours to delete.
+    rm -rf "$TMP_ICON"
+  fi
+
+  local ICON_VALUE
+  if [ -n "${ICON_SRC:-}" ] && [ -f "$ICON_SRC" ]; then
+    cp "$ICON_SRC" "$ICON_DIR/$APP_ID.png"
+    ICON_VALUE="$ICON_DIR/$APP_ID.png"
+  else
+    # A missing icon must not fail the install; the menu shows a generic one instead.
+    ICON_VALUE="utilities-terminal"
+  fi
+
+  # Ubuntu 24.04 and later refuse unprivileged user namespaces to unconfined apps, which is
+  # how Chromium's sandbox starts. On that kernel an AppImage dies before drawing a window,
+  # with a message about the SUID sandbox helper that reads like a broken install. The .deb
+  # is unaffected (it installs the helper as root), so this is the one place the routes
+  # differ — and the flag goes in the menu entry so clicking the icon actually opens Halo.
+  local SANDBOX_FLAG="" SANDBOX_NOTE=""
+  local RESTRICT=/proc/sys/kernel/apparmor_restrict_unprivileged_userns
+  if [ -r "$RESTRICT" ] && [ "$(cat "$RESTRICT" 2>/dev/null || echo 0)" = "1" ]; then
+    SANDBOX_FLAG="--no-sandbox"
+    SANDBOX_NOTE="1"
+  fi
+
+  # Exec quoting: the path can contain spaces (`~/My Apps`), and a .desktop Exec is not
+  # a shell — it needs its own quoting, which is the double quotes around the path.
+  cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
 Type=Application
 Name=$APP_NAME
 GenericName=AI assistant
 Comment=Chat with an assistant that can work on this PC
-Exec="$TARGET" $SANDBOX %U
-Icon=$ICON
+Exec="$TARGET" ${SANDBOX_FLAG:-} %U
+Icon=$ICON_VALUE
 Terminal=false
 Categories=Utility;
 StartupWMClass=$APP_NAME
 EOF
-chmod 644 "$DESKTOP_FILE"
+  chmod 644 "$DESKTOP_FILE"
 
-if have update-desktop-database; then
-  update-desktop-database "$APPS_DIR" >/dev/null 2>&1 || true
-fi
+  if have update-desktop-database; then
+    update-desktop-database "$APPS_DIR" >/dev/null 2>&1 || true
+  fi
 
-printf '\n'
-say "$APP_NAME is installed."
-say "  program  $TARGET"
-say "  command  $APP_ID   (in $BIN_DIR)"
-case ":$PATH:" in
-  *":$BIN_DIR:"*) say "  run it   $APP_ID" ;;
-  *) say "  run it   $TARGET"
-     say "  add $BIN_DIR to your PATH to run '$APP_ID' from a terminal." ;;
+  echo ""
+  say "Halo is installed."
+  say "  program  $TARGET"
+  say "  command  $APP_ID   (symlinked in $BIN_DIR)"
+  say "  menu     $DESKTOP_FILE"
+  case ":$PATH:" in
+    *":$BIN_DIR:"*) ;;
+    *) say "Add $BIN_DIR to your PATH to run '$APP_ID' from a terminal." ;;
+  esac
+
+  if [ "$SANDBOX_NOTE" = "1" ]; then
+    echo ""
+    say "Note: this system restricts unprivileged user namespaces (Ubuntu 24.04+),"
+    say "which is why the menu entry starts Halo with --no-sandbox. The Flatpak does not"
+    say "need it:  sh install.sh --flatpak"
+  fi
+  echo ""
+}
+
+# A file given on the command line is installed as it is, whatever kind it is.
+install_file() {
+  local file="$1"
+  case "$file" in
+    *.flatpak) install_flatpak "$file" ;;
+    *.deb) install_deb "$file" ;;
+    *.AppImage) install_appimage "$file" ;;
+    *) die "I do not know how to install \"$file\" — expected a .flatpak, .deb or .AppImage" ;;
+  esac
+}
+
+# ---- what was asked for ---------------------------------------------------
+
+MODE="auto"
+case "${1:-}" in
+  --uninstall) uninstall ;;
+  --help|-h)
+    sed -n '2,24p' "${BASH_SOURCE[0]:-$0}" 2>/dev/null || true
+    exit 0 ;;
+  --list) list_assets; exit 0 ;;
+  --flatpak) MODE="flatpak" ;;
+  --appimage) MODE="appimage" ;;
+  --deb) MODE="deb" ;;
+  "") ;;
+  -*) die "Unknown option \"$1\". Try  sh install.sh --help" ;;
+  *) install_file "$1"; exit 0 ;;
 esac
-if [ -n "$SANDBOX" ]; then
-  say "  note     this system restricts unprivileged user namespaces (Ubuntu 24.04+),"
-  say "           which is why the menu entry starts Halo with --no-sandbox."
+
+# ---- a build in the repository, for whoever is working on it --------------
+#
+# `npm run build:linux` and `npm run build:flatpak` leave their output in dist/, and running
+# this script from the checkout should install that rather than a published release.
+local_build() {
+  local pattern="$1" files
+  files=("$HERE"/dist/$pattern)
+  [ -e "${files[0]}" ] || return 1
+  # `|| true` because `head` closing the pipe early can SIGPIPE `ls`, and with `pipefail`
+  # that would abort the whole install on a successful match.
+  ls -t "${files[@]}" 2>/dev/null | head -n 1 || true
+}
+
+case "$MODE" in
+  flatpak) LOCAL="$(local_build '*.flatpak' || true)" ;;
+  deb) LOCAL="$(local_build '*.deb' || true)" ;;
+  *) LOCAL="$(local_build '*.AppImage' || local_build '*.flatpak' || true)" ;;
+esac
+
+if [ -n "${LOCAL:-}" ] && [ -f "$LOCAL" ]; then
+  say "using the build in dist/"
+  install_file "$LOCAL"
+  exit 0
 fi
-printf '\n'
+
+# ---- otherwise download what is published --------------------------------
+
+fetch_manifest
+
+case "$MODE" in
+  flatpak)
+    LINE="$(choose flatpak || true)"
+    [ -n "$LINE" ] || die "No Flatpak is published for $(uname -m) yet. What is published:
+$(list_assets)"
+    install_flatpak "$LINE"
+    ;;
+  appimage)
+    LINE="$(choose AppImage || true)"
+    [ -n "$LINE" ] || die "No AppImage is published for $(uname -m) yet. What is published:
+$(list_assets)"
+    install_appimage "$(grab "$LINE")"
+    ;;
+  deb)
+    LINE="$(choose deb || true)"
+    [ -n "$LINE" ] || die "No .deb is published for $(uname -m) yet. What is published:
+$(list_assets)"
+    install_deb "$LINE"
+    ;;
+  auto)
+    # The Flatpak first, but only when flatpak is actually installed: handing somebody a
+    # browser download they cannot open is not an install.
+    if have flatpak && LINE="$(choose flatpak || true)" && [ -n "${LINE:-}" ]; then
+      install_flatpak "$LINE"
+    elif LINE="$(choose AppImage || true)" && [ -n "${LINE:-}" ]; then
+      install_appimage "$(grab "$LINE")"
+    elif LINE="$(choose deb || true)" && [ -n "${LINE:-}" ]; then
+      install_deb "$LINE"
+    else
+      die "No Linux build is published for $(uname -m) yet, so there is nothing to install.
+  What is published:
+$(list_assets)
+  Until then, the Windows builds and the source are at $BASE/download"
+    fi
+    ;;
+esac
