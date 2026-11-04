@@ -55,6 +55,24 @@
       "url": "downloads/Halo-Portable-1.0.0.exe",
       "size": 157492126,
       "sha256": "b551b41eaf02b0684181386f4db02af12e7eb8ce8478093c1b41d9df2937f385"
+    },
+    {
+      "platform": "linux",
+      "arch": "x64",
+      "kind": "AppImage",
+      "file": "Halo-1.0.0-x86_64.AppImage",
+      "url": "https://github.com/reteshmani0-droid/Halo/releases/download/v1.0.0/Halo-1.0.0-x86_64.AppImage",
+      "size": 109794863,
+      "sha256": "d04a8e8a5dfb08b00b6f25f3b8dce2337734e6cf076a2cb71a3a4e22d4c7c811"
+    },
+    {
+      "platform": "linux",
+      "arch": "x64",
+      "kind": "deb",
+      "file": "Halo-1.0.0-amd64.deb",
+      "url": "https://github.com/reteshmani0-droid/Halo/releases/download/v1.0.0/Halo-1.0.0-amd64.deb",
+      "size": 76461868,
+      "sha256": "7494455710130d5334fbab77251fdb464dd3d9ead01b5f072a4cb581b5f0cc8a"
     }
   ]
 }
