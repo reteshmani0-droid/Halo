@@ -4,14 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Download Halo for Windows, macOS and Linux (ARM64 and x64)</title>
-  <meta name="description" content="Download Halo for Windows, macOS or Linux, or install it with one command on Linux. ARM64 builds for Apple silicon and Windows on ARM, x64 for Intel and AMD, Flatpak, AppImage and deb." />
+  <meta name="description" content="Download Halo for Windows, macOS or Linux. ARM64 builds for Apple silicon and Windows on ARM, x64 builds for Intel and AMD. Sizes and SHA-256 checksums for every file." />
   <link rel="canonical" href="https://halo.example/download" />
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#f7f5f1" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="manifest" href="/site.webmanifest" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Download Halo" />
-  <meta property="og:description" content="Windows, macOS and Linux — Flatpak, AppImage or deb — with checksums." />
+  <meta property="og:description" content="Windows, macOS and Linux, ARM64 and x64, with checksums." />
   <meta property="og:image" content="/assets/img/icon.png" />
   <link rel="stylesheet" href="/assets/css/site.css" />
   <script src="/assets/js/config.js"></script>
@@ -39,6 +39,8 @@
       <p class="lead">Your next pair of hands is a download away. Find the build for your computer, bring your model, and make yourself at home.</p>
     </div>
 
+    <!-- One click: the build for this machine, chosen from the published list rather than
+         guessed, and named from the file it is about to hand over. -->
     <div class="download-feature">
     <div id="one" class="one-box"><span class="dim small">Finding the right build…</span></div>
     <p class="dim small" id="dlStamp"></p>
@@ -48,24 +50,6 @@
       <a class="small" href="/start">Get started: download, install, sign in <span aria-hidden="true">↗</span></a>
     </div>
     </div>
-
-    <section class="oneclick" id="oneClick" style="margin-top:32px">
-      <span class="eyebrow">ON LINUX, ONE COMMAND</span>
-      <h2 style="margin-top:10px">Install Halo in one line.</h2>
-      <p class="small muted" style="max-width:62ch">
-        The installer reads the published build list, takes the Flatpak when this machine has
-        flatpak and the AppImage when it does not, and refuses any download whose SHA-256 does
-        not match the one on this page. No root, nothing outside your home, and your settings
-        are never touched.
-      </p>
-      <div class="copy-row"><code id="linuxCmd">sh install.sh</code></div>
-      <p class="small dim">
-        <a href="/install.sh" download>Download install.sh</a> and read it first if you would
-        rather — it is a short shell script, and nothing here hides that. Options:
-        <code>--flatpak</code>, <code>--appimage</code>, <code>--deb</code>,
-        <code>--list</code>, <code>--uninstall</code>.
-      </p>
-    </section>
 
     <span class="eyebrow">PICK YOUR PLATFORM</span>
     <h2 style="margin-top:12px" id="all">One assistant. Your computer.</h2>
@@ -92,7 +76,7 @@
       </div>
       <p class="small dim" style="margin-top:12px">
         Check a download with <code>certutil -hashfile Halo.exe SHA256</code> on Windows or
-        <code>shasum -a 256 Halo.dmg</code> on macOS. On Linux the installer already does it.
+        <code>shasum -a 256 Halo.dmg</code> on macOS.
       </p>
     </details>
 
@@ -113,14 +97,17 @@
         </div>
         <div class="card tight">
           <h3>Linux</h3>
-          <p class="small">Three packages, one assistant. The <strong>Flatpak</strong> carries its
-          own runtime, so it installs the same way on every distribution. The
-          <strong>AppImage</strong> runs anywhere with <code>chmod +x</code>. The <strong>.deb</strong>
-          is for Debian and Ubuntu on x64 or arm64 and is the only one that needs root.</p>
-          <p class="small" style="margin:12px 0 0">
-            One command at the top of this page installs the right one of those; the script is
-            <a href="/install.sh" download>install.sh</a>.
-          </p>
+          <p class="small">AppImage runs anywhere with <code>chmod +x</code>; the .deb is for
+          Debian and Ubuntu on x64 or arm64. A desktop session is required: Halo has a window
+          and a tray icon.</p>
+          <!-- Shown only when a Linux build is actually published, and filled in by
+               page-download.js with this deploy's own address: a command that downloads
+               nothing is worse than no command. -->
+          <div id="linuxInstall" class="hidden" style="margin-top:12px">
+            <p class="small" style="margin:0 0 6px">Or let the installer pick the right build,
+            check its SHA-256 and add a menu entry for you — no root, nothing outside your home:</p>
+            <div class="copy-row"><code id="linuxCmd">curl -fsSL /install.sh | sh</code></div>
+          </div>
         </div>
         <div class="card tight">
           <h3>All systems</h3>

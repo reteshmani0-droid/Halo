@@ -17,7 +17,7 @@
 window.HALO_CONFIG = {
   // Supabase project — Dashboard → Settings → API Keys (the Project URL is on that page, and in
   // the project's Connect dialog). Paste the publishable key, `sb_publishable_…`, or on an older
-  // project the legacy `anon` public JWT. Never the secret key: see web/README.md, step 2.
+  // project the legacy `anon` `public` JWT. Never the secret key: see web/README.md, step 2.
   supabase: {
     url: '',
     anonKey: '',
@@ -40,26 +40,3 @@ window.HALO_CONFIG = {
   version: '1.0.0',
   repoUrl: '',
 };
-
-/*
- * The theme.
- *
- * The site is black now, and this file is a blocking script in the <head> of every page that
- * has one, so the stylesheet is requested while the parser is still in the head — before the
- * body exists and before the first paint. That is the whole reason the theme is loaded from
- * here instead of from eight separate <link> tags, and the background is set on the document
- * element as well, so even a slow stylesheet cannot open the page on a white flash.
- *
- * privacy.html and 404.html load no scripts, so they carry the same <link> in their own head.
- */
-(function () {
-  if (typeof document === 'undefined' || document.getElementById('halo-theme')) return;
-  document.documentElement.style.background = '#000';
-  const link = document.createElement('link');
-  link.id = 'halo-theme';
-  link.rel = 'stylesheet';
-  link.href = '/assets/css/black.css';
-  document.head.appendChild(link);
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', '#000000');
-})();

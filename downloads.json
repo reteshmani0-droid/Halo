@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "publishedAt": "2026-11-03T21:59:56.307Z",
+  "publishedAt": "2026-11-06T20:58:41.042Z",
   "assets": [
     {
       "platform": "windows",
@@ -8,8 +8,8 @@
       "kind": "installer",
       "file": "Halo Setup 1.0.0-arm64.exe",
       "url": "downloads/Halo.Setup.1.0.0-arm64.exe",
-      "size": 82484394,
-      "sha256": "9ca884a72c9175beb22d7d3956e5cc48adf3013a52055d1056a37e6bdb899fce"
+      "size": 83737371,
+      "sha256": "be3412d05dda105e074babfcab94adb52453e2c16107e7d321b50a373d2b48b4"
     },
     {
       "platform": "windows",
@@ -17,8 +17,8 @@
       "kind": "portable",
       "file": "Halo-Portable-1.0.0-arm64.exe",
       "url": "downloads/Halo-Portable-1.0.0-arm64.exe",
-      "size": 82166887,
-      "sha256": "dd65087e59d5b271130d32ba58c4405e0d06f2844201ed25bd09149964cba1b0"
+      "size": 83419809,
+      "sha256": "6a9c22cb0774612328e078be34b6f39b662621c1cad4a7fbf63f7236e1ab5997"
     },
     {
       "platform": "windows",
@@ -26,8 +26,8 @@
       "kind": "installer",
       "file": "Halo Setup 1.0.0-x64.exe",
       "url": "downloads/Halo.Setup.1.0.0-x64.exe",
-      "size": 76156052,
-      "sha256": "e7cb892ce0f868d339d0ad0fe3182b92913e540546ab2566bdc40495931829e4"
+      "size": 77401669,
+      "sha256": "0d9e6645cad0fbba63473a0c6b558a39a56fa4c0d701f3d28db6565999575c32"
     },
     {
       "platform": "windows",
@@ -35,8 +35,8 @@
       "kind": "portable",
       "file": "Halo-Portable-1.0.0-x64.exe",
       "url": "downloads/Halo-Portable-1.0.0-x64.exe",
-      "size": 75838245,
-      "sha256": "8c17975c8053030fb7dbb14c610b03d007b394c750e87b05a89a75e44de4eaf0"
+      "size": 77083786,
+      "sha256": "5b1599214120be712b6c986a2ebb65a4b2509d0a75a93a331fa56cc973da8e54"
     },
     {
       "platform": "windows",
@@ -44,8 +44,8 @@
       "kind": "installer",
       "file": "Halo Setup 1.0.0.exe",
       "url": "downloads/Halo.Setup.1.0.0.exe",
-      "size": 157809652,
-      "sha256": "67327cb2c3a7e2dc658c15d3d497f5a89bfe509460608bd51cdff843e7b15c05"
+      "size": 160308186,
+      "sha256": "f6a03aa00a1f6f673b01a1bc2800ae91dff21fa7c4faba6b9114fc8d090aa77d"
     },
     {
       "platform": "windows",
@@ -53,8 +53,8 @@
       "kind": "portable",
       "file": "Halo-Portable-1.0.0.exe",
       "url": "downloads/Halo-Portable-1.0.0.exe",
-      "size": 157492126,
-      "sha256": "b551b41eaf02b0684181386f4db02af12e7eb8ce8478093c1b41d9df2937f385"
+      "size": 159990596,
+      "sha256": "c03eb0cdc27310dbc6693c492ed11261ffd9377850146e607239a0babf207a73"
     },
     {
       "platform": "linux",
